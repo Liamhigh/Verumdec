@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="verum_primary">#1A237E</color>
+    <color name="verum_primary_dark">#0D1254</color>
+    <color name="verum_accent">#FFD700</color>
+    <color name="verum_background">#F5F5F5</color>
+    <color name="verum_surface">#FFFFFF</color>
+    <color name="verum_text_primary">#212121</color>
+    <color name="verum_text_secondary">#757575</color>
+    
+    <!-- Severity Colors -->
+    <color name="severity_critical">#D32F2F</color>
+    <color name="severity_high">#F57C00</color>
+    <color name="severity_medium">#FBC02D</color>
+    <color name="severity_low">#388E3C</color>
+    
+    <!-- Liability Colors -->
+    <color name="liability_high">#B71C1C</color>
+    <color name="liability_medium">#E65100</color>
+    <color name="liability_low">#1B5E20</color>
+    
+    <!-- Truth Indicator -->
+    <color name="truth_stable">#2E7D32</color>
+    <color name="truth_unstable">#C62828</color>
+</resources>
