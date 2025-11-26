@@ -13,11 +13,11 @@
 | File | Description |
 |------|-------------|
 | `README.md` | Full forensic pipeline documentation (9 stages) |
-| `VO_Contradiction_Engine_Developer_Manual.pdf` | Developer manual for the contradiction engine |
+| `VO_Contradiction_Engine_Developer_Manual.pdf` | Developer manual for the contradiction engine (technical implementation guide) |
 | `Verum_Omnis_Constitutional_Charter_with_Statement (1).pdf` | Constitutional charter and mission statement |
 | `Verum_Omnis_Master_Forensic_Archive_v5.2.7_(Institutional_Edition).PDF` | Institutional forensic archive reference |
-| `Verum omnis(3).PDF` | Supporting documentation |
-| `Southbridge_CaseFile_MASTER_Sealed_Indexed_compressed.PDF` | Case file reference material |
+| `Verum omnis(3).PDF` | Core project documentation with system specifications |
+| `Southbridge_CaseFile_MASTER_Sealed_Indexed_compressed.PDF` | Case file reference material (example case demonstrating engine capabilities) |
 
 ---
 
@@ -141,9 +141,9 @@ The Verumdec Contradiction Engine is designed to be an **offline, on-device lega
 
 - **Platform**: Android (Kotlin)
 - **Offline Processing**: Full functionality without internet
-- **Libraries**:
-  - Apache PDFBox (PDF processing)
-  - Tesseract (OCR)
+- **Libraries** (requires verification for Android compatibility):
+  - PDF processing: PdfiumAndroid, iText for Android, or Apache PDFBox (compatibility TBD)
+  - OCR: Tesseract Android (tess-two or tesseract4android)
   - On-device NLP for entity/claim extraction
 - **Output**: Sealed PDF reports with cryptographic hashing
 
