@@ -10,7 +10,7 @@ import java.util.*
 class ContradictionAnalyzer {
 
     // Negation indicators
-    private val negations = listOf("not", "never", "no", "didn't", "didn't", "wasn't", "won't", "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
+    private val negations = listOf("not", "never", "no", "didn't", "wasn't", "won't", "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
     
     // Contradiction trigger phrases
     private val contradictionTriggers = mapOf(
