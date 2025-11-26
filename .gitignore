@@ -20,6 +20,9 @@ release/
 .gradle/
 build/
 
+# Gradle wrapper jar in root (should only be in gradle/wrapper/)
+/gradle-wrapper.jar
+
 # Local configuration file (sdk path, etc)
 local.properties
 

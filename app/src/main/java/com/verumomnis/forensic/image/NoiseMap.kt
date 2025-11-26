@@ -2,6 +2,7 @@ package com.verumomnis.forensic.image
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import kotlin.math.abs
 
 /**
  * Noise Map analyzer for detecting copy-paste splices.
@@ -37,6 +38,4 @@ object NoiseMap {
 
         return (totalVariance / samples / 255f).coerceIn(0f, 1f)
     }
-
-    private fun abs(value: Float): Float = if (value < 0) -value else value
 }
