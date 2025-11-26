@@ -57,7 +57,38 @@ android {
 }
 
 dependencies {
+    // ============================================
+    // Verumdec Module Dependencies
+    // These modules form the offline contradiction engine pipeline
+    // ============================================
+    
+    // Core module - shared data models and utilities
+    implementation(project(":core"))
+    
+    // OCR module - text extraction from images (Pipeline Stage 1)
+    implementation(project(":ocr"))
+    
+    // PDF module - PDF processing and parsing (Pipeline Stage 1)
+    implementation(project(":pdf"))
+    
+    // Entity module - entity and claim extraction (Pipeline Stage 2)
+    implementation(project(":entity"))
+    
+    // Timeline module - event chronologization (Pipeline Stage 3)
+    implementation(project(":timeline"))
+    
+    // Analysis module - contradiction and behavioral analysis (Pipeline Stages 4-6)
+    implementation(project(":analysis"))
+    
+    // Report module - PDF generation and sealing (Pipeline Stages 7-8)
+    implementation(project(":report"))
+    
+    // UI module - shared presentation components (Pipeline Stage 9)
+    implementation(project(":ui"))
+
+    // ============================================
     // Core Android
+    // ============================================
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0")
