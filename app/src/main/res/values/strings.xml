@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Verum Omnis</string>
+    <string name="app_description">Contradiction Engine - Forensic Truth Analysis</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_evidence">Evidence</string>
+    <string name="nav_analysis">Analysis</string>
+    <string name="nav_report">Report</string>
+    
+    <!-- Actions -->
+    <string name="action_import">Import Evidence</string>
+    <string name="action_analyze">Analyze</string>
+    <string name="action_export">Export Report</string>
+    <string name="action_seal">Seal Document</string>
+    
+    <!-- Engine Status -->
+    <string name="status_idle">Ready for analysis</string>
+    <string name="status_processing">Processing evidence…</string>
+    <string name="status_complete">Analysis complete</string>
+    
+    <!-- Contradiction Severity -->
+    <string name="severity_critical">Critical</string>
+    <string name="severity_high">High</string>
+    <string name="severity_medium">Medium</string>
+    <string name="severity_low">Low</string>
+    
+    <!-- Report Sections -->
+    <string name="section_timeline">Timeline</string>
+    <string name="section_entities">Entities</string>
+    <string name="section_contradictions">Contradictions</string>
+    <string name="section_behavior">Behavioral Analysis</string>
+    <string name="section_liability">Liability Matrix</string>
+</resources>
