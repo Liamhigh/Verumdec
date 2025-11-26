@@ -7,9 +7,15 @@ on:
     branches: [ main, master ]
   workflow_dispatch:  # Allow manual trigger
 
+# Limit permissions to minimum required
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
@@ -62,6 +68,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
     - name: Checkout code
