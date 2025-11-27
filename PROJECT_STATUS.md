@@ -19,7 +19,7 @@
 | Gradle Modules | 9 |
 | Engine Components | 9 (all implemented) |
 | UI Activities | 3 |
-| RecyclerView Adapters | 6 |
+| RecyclerView Adapters | 5 |
 | Data Model Classes | 20+ |
 
 ---
@@ -41,15 +41,15 @@
 |--------|---------|--------|
 | `app` | Main application entry point | ✅ Complete |
 | `core` | Shared data models and utilities | ✅ Complete |
-| `ocr` | OCR utilities for text extraction | ⚠️ Placeholder |
-| `pdf` | PDF processing and parsing | ⚠️ Placeholder |
-| `entity` | Entity and claim extraction | ⚠️ Placeholder |
-| `timeline` | Event chronologization | ⚠️ Placeholder |
-| `analysis` | Contradiction detection | ⚠️ Placeholder |
-| `report` | PDF generation and sealing | ⚠️ Placeholder |
-| `ui` | Shared UI components | ⚠️ Placeholder |
+| `ocr` | OCR utilities for text extraction | ⚠️ Placeholder (impl in app) |
+| `pdf` | PDF processing and parsing | ⚠️ Placeholder (impl in app) |
+| `entity` | Entity and claim extraction | ⚠️ Placeholder (impl in app) |
+| `timeline` | Event chronologization | ⚠️ Placeholder (impl in app) |
+| `analysis` | Contradiction detection | ⚠️ Placeholder (impl in app) |
+| `report` | PDF generation and sealing | ⚠️ Placeholder (impl in app) |
+| `ui` | Shared UI components | ⚠️ Placeholder (impl in app) |
 
-> **Note**: The module placeholders exist for architecture purposes. The actual functionality is implemented in the `app` module's engine package.
+> **Note**: The library modules (ocr, pdf, entity, timeline, analysis, report, ui) contain placeholder classes for future modularization. The actual functionality is fully implemented in the `app` module's engine package. This architecture allows for future refactoring into separate modules without breaking the current working implementation.
 
 ---
 
@@ -74,7 +74,7 @@
 | **Report Generator** | ✅ Complete | Full PDF with SHA-512 sealing |
 | **Main Activity** | ✅ Complete | Case management, evidence upload |
 | **Analysis Activity** | ✅ Complete | Results display, report generation |
-| **All Adapters** | ✅ Complete | Entity, Timeline, Contradiction, etc. |
+| **All Adapters** | ✅ Complete | 5 adapters: Entity, Timeline, Contradiction, Liability, Evidence |
 | **Layout XML Files** | ✅ Complete | 6 layout files |
 | **Resource Files** | ✅ Complete | Colors, strings, themes, dimens |
 | **Drawable Resources** | ✅ Complete | Icons and shapes |
