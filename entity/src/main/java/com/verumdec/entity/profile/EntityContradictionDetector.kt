@@ -413,7 +413,8 @@ class EntityContradictionDetector {
             documentId = claim.documentId,
             documentName = claim.documentId,
             lineNumber = 0,
-            timestamp = claim.timestamp,
+            timestamp = claim.timestamp?.let { com.verumdec.core.extraction.DateNormalizer.fromMillis(it) },
+            timestampMillis = claim.timestamp,
             legalCategory = mapClaimCategoryToLegalCategory(claim.category)
         )
     }
@@ -432,7 +433,8 @@ class EntityContradictionDetector {
             documentId = figure.documentId,
             documentName = figure.documentId,
             lineNumber = 0,
-            timestamp = figure.timestamp,
+            timestamp = figure.timestamp?.let { com.verumdec.core.extraction.DateNormalizer.fromMillis(it) },
+            timestampMillis = figure.timestamp,
             legalCategory = com.verumdec.core.model.LegalCategory.FINANCIAL
         )
     }

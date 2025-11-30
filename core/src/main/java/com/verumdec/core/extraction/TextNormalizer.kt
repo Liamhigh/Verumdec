@@ -12,18 +12,19 @@ package com.verumdec.core.extraction
  */
 object TextNormalizer {
 
-    // Common OCR error mappings
+    // Common OCR error mappings: standard character -> list of erroneous variations
+    // When correcting, we replace the errors (values) with the standard (key)
     private val ocrCorrections = mapOf(
-        "l" to listOf("1", "|", "I"),
-        "0" to listOf("O", "o"),
-        "1" to listOf("l", "I", "|"),
-        "rn" to listOf("m"),
-        "cl" to listOf("d"),
-        "li" to listOf("h"),
-        "vv" to listOf("w"),
-        "'" to listOf("`", "´", "'", "'"),
-        "\"" to listOf(""", """, "„", "«", "»"),
-        "-" to listOf("–", "—", "−", "‐", "‑", "‒", "―")
+        "l" to listOf("1", "|", "I"),  // Note: Context-dependent, use carefully
+        "0" to listOf("O", "o"),  // Note: Context-dependent
+        "1" to listOf("l", "I", "|"),  // Note: Context-dependent
+        "rn" to listOf("m"),  // rn misread as m
+        "cl" to listOf("d"),  // cl misread as d
+        "li" to listOf("h"),  // li misread as h
+        "vv" to listOf("w"),  // vv misread as w
+        "'" to listOf("`", "´", "'", "'"),  // Various apostrophe variations -> standard
+        "\"" to listOf(""", """, "„", "«", "»"),  // Various quote variations -> standard
+        "-" to listOf("–", "—", "−", "‐", "‑", "‒", "―")  // Various dash variations -> standard
     )
 
     // Common abbreviations and expansions
@@ -95,6 +96,7 @@ object TextNormalizer {
 
     /**
      * Correct common OCR errors in text.
+     * Replaces common erroneous character sequences with their correct forms.
      *
      * @param text Text that may contain OCR errors
      * @return Text with common OCR errors corrected
@@ -102,9 +104,10 @@ object TextNormalizer {
     fun correctOcrErrors(text: String): String {
         var corrected = text
         
-        for ((correct, errors) in ocrCorrections) {
-            for (error in errors) {
-                corrected = corrected.replace(error, correct)
+        // For each (correct, errors) pair, replace each error with the correct form
+        for ((standardForm, errorVariations) in ocrCorrections) {
+            for (errorVariation in errorVariations) {
+                corrected = corrected.replace(errorVariation, standardForm)
             }
         }
         

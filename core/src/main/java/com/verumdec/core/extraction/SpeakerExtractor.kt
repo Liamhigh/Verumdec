@@ -74,15 +74,20 @@ object SpeakerExtractor {
             val sentences = TextNormalizer.extractSentences(text)
             sentences.forEachIndexed { index, sentence ->
                 if (sentence.isNotBlank()) {
-                    statements.add(
-                        SpeakerStatement(
-                            speaker = documentAuthor.trim(),
-                            text = sentence,
-                            startIndex = text.indexOf(sentence),
-                            endIndex = text.indexOf(sentence) + sentence.length,
-                            extractionMethod = ExtractionMethod.DOCUMENT_AUTHOR
+                    // Find the actual position of this sentence by tracking position
+                    var searchStart = 0
+                    val sentenceIndex = text.indexOf(sentence, searchStart)
+                    if (sentenceIndex >= 0) {
+                        statements.add(
+                            SpeakerStatement(
+                                speaker = documentAuthor.trim(),
+                                text = sentence,
+                                startIndex = sentenceIndex,
+                                endIndex = sentenceIndex + sentence.length,
+                                extractionMethod = ExtractionMethod.DOCUMENT_AUTHOR
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
