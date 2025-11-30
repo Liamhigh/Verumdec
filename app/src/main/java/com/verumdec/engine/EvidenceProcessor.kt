@@ -77,7 +77,9 @@ class EvidenceProcessor(private val context: Context) {
         return evidence.copy(
             extractedText = extractedText,
             metadata = metadata,
-            processed = true
+            processed = true,
+            origin = uri.toString(),
+            contentHash = calculateHash(extractedText)
         )
     }
 
@@ -101,11 +103,13 @@ class EvidenceProcessor(private val context: Context) {
 
             evidence.copy(
                 extractedText = result,
-                processed = true
+                processed = true,
+                origin = uri.toString(),
+                contentHash = calculateHash(result)
             )
         } catch (e: Exception) {
             e.printStackTrace()
-            evidence.copy(processed = true)
+            evidence.copy(processed = true, origin = uri.toString())
         }
     }
 
@@ -124,7 +128,9 @@ class EvidenceProcessor(private val context: Context) {
 
         return evidence.copy(
             extractedText = text,
-            processed = true
+            processed = true,
+            origin = uri.toString(),
+            contentHash = calculateHash(text)
         )
     }
 
@@ -159,7 +165,9 @@ class EvidenceProcessor(private val context: Context) {
         return evidence.copy(
             extractedText = text,
             metadata = metadata,
-            processed = true
+            processed = true,
+            origin = uri.toString(),
+            contentHash = calculateHash(text)
         )
     }
 
@@ -178,7 +186,9 @@ class EvidenceProcessor(private val context: Context) {
 
         return evidence.copy(
             extractedText = text,
-            processed = true
+            processed = true,
+            origin = uri.toString(),
+            contentHash = calculateHash(text)
         )
     }
 
@@ -200,6 +210,16 @@ class EvidenceProcessor(private val context: Context) {
             } catch (_: Exception) {}
         }
         return null
+    }
+
+    /**
+     * Calculate SHA-256 hash for content integrity verification.
+     */
+    private fun calculateHash(content: String): String {
+        if (content.isBlank()) return ""
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(content.toByteArray())
+        return hashBytes.joinToString("") { "%02x".format(it) }
     }
 
     companion object {
