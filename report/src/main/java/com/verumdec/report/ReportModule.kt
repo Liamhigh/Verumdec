@@ -1,7 +1,14 @@
 package com.verumdec.report
 
+import com.verumdec.core.model.ContradictionReport
+import com.verumdec.core.model.StatementIndex
+import com.verumdec.core.model.TimelineEvent
+import com.verumdec.entity.profile.EntityProfile
+import com.verumdec.report.narrative.NarrativeEngine
+import com.verumdec.report.narrative.NarrativeOutput
+
 /**
- * Report Module - Placeholder
+ * Report Module - PDF Report Generation and Cryptographic Sealing
  *
  * This module handles PDF report generation and cryptographic sealing.
  * It produces court-ready documents with full narrative, timeline, and liability analysis.
@@ -18,13 +25,16 @@ package com.verumdec.report
  * - Stage 7: NARRATIVE GENERATION
  * - Stage 8: THE FINAL SEALED REPORT (PDF)
  *
- * ## Future Implementation:
- * - PDFBox integration for PDF generation
- * - Template-based report formatting
- * - Cryptographic sealing (SHA-512)
- * - Watermarking and branding
- * - QR code generation
- * - Metadata embedding
+ * ## Narrative Structure:
+ * - Introduction section (what the case is about)
+ * - Parties section (summaries of entities involved)
+ * - Chronological timeline of events
+ * - Key statements extracted from documents
+ * - Contradictions inserted directly into the relevant timeline steps
+ * - Interpretation of what each contradiction means legally
+ * - Behavioural analysis (linguistic drift, certainty changes)
+ * - Financial inconsistencies and impacts
+ * - Closing summary with recommended legal triggers
  *
  * ## Narrative Layers:
  * - A. Objective Narration Layer (clean chronological account)
@@ -58,54 +68,102 @@ object ReportModule {
     /**
      * Module version for tracking compatibility
      */
-    const val VERSION = "1.0.0"
+    const val VERSION = "2.0.0"
 
     /**
      * Module name identifier
      */
     const val NAME = "report"
 
+    // Singleton narrative engine instance
+    private var narrativeEngine: NarrativeEngine? = null
+
     /**
      * Initialize the Report module.
-     *
-     * TODO: Implement initialization logic
-     * - Initialize PDF generation library
-     * - Load templates and fonts
+     * Creates the NarrativeEngine.
      */
     fun initialize() {
-        // Placeholder for module initialization
+        narrativeEngine = NarrativeEngine()
     }
 
     /**
-     * Generate a narrative from analysis results.
+     * Get or create the NarrativeEngine.
      *
-     * TODO: Implement narrative generation
-     * @param timeline Master timeline
-     * @param contradictions Detected contradictions
-     * @param behavioralAnalysis Behavioral analysis results
-     * @param liabilityScores Entity liability scores
-     * @return Generated narrative text
+     * @return NarrativeEngine instance
+     */
+    fun getNarrativeEngine(): NarrativeEngine {
+        if (narrativeEngine == null) {
+            initialize()
+        }
+        return narrativeEngine!!
+    }
+
+    /**
+     * Generate a complete forensic narrative.
+     *
+     * @param caseTitle Title for the case
+     * @param statementIndex Index of all statements
+     * @param entityProfiles Map of entity profiles
+     * @param timelineEvents List of timeline events
+     * @param contradictionReport Full contradiction report
+     * @return NarrativeOutput containing the full narrative
      */
     fun generateNarrative(
-        timeline: List<Any>,
-        contradictions: List<Any>,
-        behavioralAnalysis: Map<String, Any>,
-        liabilityScores: Map<String, Int>
-    ): String {
-        // Placeholder for narrative generation
-        return ""
+        caseTitle: String,
+        statementIndex: StatementIndex,
+        entityProfiles: Map<String, EntityProfile>,
+        timelineEvents: List<TimelineEvent>,
+        contradictionReport: ContradictionReport
+    ): NarrativeOutput {
+        return getNarrativeEngine().generateNarrative(
+            caseTitle,
+            statementIndex,
+            entityProfiles,
+            timelineEvents,
+            contradictionReport
+        )
     }
 
     /**
      * Generate a sealed PDF report.
      *
-     * TODO: Implement PDF report generation
-     * @param narrative Generated narrative
+     * @param narrative Generated narrative output
      * @param outputPath Path for output PDF
      * @return SHA-512 hash of the sealed report
      */
-    fun generateSealedReport(narrative: String, outputPath: String): String {
-        // Placeholder for PDF generation
-        return ""
+    fun generateSealedReport(narrative: NarrativeOutput, outputPath: String): String {
+        // Get the full text content
+        val content = narrative.fullText
+        
+        // Calculate SHA-512 hash for sealing
+        val digest = java.security.MessageDigest.getInstance("SHA-512")
+        val hashBytes = digest.digest(content.toByteArray(Charsets.UTF_8))
+        val hashHex = hashBytes.joinToString("") { "%02x".format(it) }
+        
+        // TODO: Implement actual PDF generation with PDFBox
+        // For now, return the hash
+        return hashHex
+    }
+
+    /**
+     * Get the searchable text for PDF text layer.
+     *
+     * @param narrative Generated narrative output
+     * @return Searchable text content
+     */
+    fun getSearchableTextLayer(narrative: NarrativeOutput): String {
+        return narrative.getSearchableText()
+    }
+
+    /**
+     * Calculate SHA-512 hash for document sealing.
+     *
+     * @param content Document content
+     * @return SHA-512 hash as hex string
+     */
+    fun calculateHash(content: String): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-512")
+        val hashBytes = digest.digest(content.toByteArray(Charsets.UTF_8))
+        return hashBytes.joinToString("") { "%02x".format(it) }
     }
 }

@@ -1,7 +1,13 @@
 package com.verumdec.analysis
 
+import com.verumdec.analysis.engine.ContradictionEngine
+import com.verumdec.analysis.engine.LinguisticDriftDetector
+import com.verumdec.analysis.engine.SemanticEmbeddingGenerator
+import com.verumdec.core.model.ContradictionReport
+import com.verumdec.core.model.Statement
+
 /**
- * Analysis Module - Placeholder
+ * Analysis Module - Core Truth Engine
  *
  * This module handles contradiction detection, behavioral analysis, and liability calculation.
  * It is the core "truth engine" of the Verumdec system.
@@ -20,17 +26,17 @@ package com.verumdec.analysis
  * - Stage 5: BEHAVIOURAL ANALYSIS
  * - Stage 6: LIABILITY MATRIX (Mathematical Scoring)
  *
- * ## Future Implementation:
- * - Semantic similarity analysis for contradiction detection
- * - Pattern matching for behavioral indicators
- * - Statistical analysis for liability scoring
- * - Machine learning models for classification
+ * ## Multi-Pass Contradiction Detection:
+ * - Pass 1: Compare every statement against every other in same document
+ * - Pass 2: Compare statements across imported documents
+ * - Pass 3: Cross-modal contradiction checks (text vs timeline vs entities)
+ * - Pass 4: Linguistic drift detection on each speaker's statements
  *
  * ## Contradiction Severity Levels:
- * - Critical: Flips liability
- * - High: Dishonest intent likely
- * - Medium: Unclear/error
- * - Low: Harmless inconsistency
+ * - Critical (9-10): Flips liability
+ * - High (7-8): Dishonest intent likely
+ * - Medium (5-6): Unclear/error
+ * - Low (1-4): Harmless inconsistency
  *
  * ## Behavioral Patterns Detected:
  * - Gaslighting
@@ -51,65 +57,87 @@ object AnalysisModule {
     /**
      * Module version for tracking compatibility
      */
-    const val VERSION = "1.0.0"
+    const val VERSION = "2.0.0"
 
     /**
      * Module name identifier
      */
     const val NAME = "analysis"
 
+    // Singleton engine instance
+    private var contradictionEngine: ContradictionEngine? = null
+
     /**
      * Initialize the Analysis module.
-     *
-     * TODO: Implement initialization logic
-     * - Load analysis models
-     * - Configure scoring weights
+     * Creates the ContradictionEngine and related components.
      */
     fun initialize() {
-        // Placeholder for module initialization
+        contradictionEngine = ContradictionEngine()
     }
 
     /**
-     * Detect contradictions in entity statements.
+     * Get or create the ContradictionEngine.
      *
-     * TODO: Implement contradiction detection
-     * @param entityId Entity identifier
-     * @param statements List of statements with timestamps
-     * @return List of detected contradictions
+     * @return ContradictionEngine instance
      */
-    fun detectContradictions(entityId: String, statements: List<Any>): List<Any> {
-        // Placeholder for contradiction detection
-        return emptyList()
+    fun getContradictionEngine(): ContradictionEngine {
+        if (contradictionEngine == null) {
+            initialize()
+        }
+        return contradictionEngine!!
     }
 
     /**
-     * Analyze behavioral patterns for an entity.
+     * Create a new SemanticEmbeddingGenerator.
      *
-     * TODO: Implement behavioral analysis
-     * @param entityId Entity identifier
-     * @param communications List of communications
-     * @return Behavioral analysis results
+     * @return New SemanticEmbeddingGenerator instance
      */
-    fun analyzeBehavior(entityId: String, communications: List<Any>): Map<String, Any> {
-        // Placeholder for behavioral analysis
-        return emptyMap()
+    fun createEmbeddingGenerator(): SemanticEmbeddingGenerator {
+        return SemanticEmbeddingGenerator()
     }
 
     /**
-     * Calculate liability score for an entity.
+     * Create a new LinguisticDriftDetector.
      *
-     * TODO: Implement liability calculation
+     * @return New LinguisticDriftDetector instance
+     */
+    fun createLinguisticDriftDetector(): LinguisticDriftDetector {
+        return LinguisticDriftDetector()
+    }
+
+    /**
+     * Run full contradiction analysis on a set of statements.
+     *
+     * @param caseId Unique identifier for this analysis
+     * @param statements List of statements to analyze
+     * @return ContradictionReport with all findings
+     */
+    fun runFullAnalysis(caseId: String, statements: List<Statement>): ContradictionReport {
+        val engine = getContradictionEngine()
+        engine.reset()
+        engine.indexStatements(statements)
+        engine.generateEmbeddings()
+        engine.buildEntityProfiles()
+        engine.buildTimeline()
+        return engine.runFullAnalysis(caseId)
+    }
+
+    /**
+     * Calculate liability score for an entity based on their contradictions.
+     *
      * @param entityId Entity identifier
-     * @param contradictions Detected contradictions
-     * @param behavioralPatterns Behavioral analysis results
+     * @param report ContradictionReport from analysis
      * @return Liability score (0-100)
      */
-    fun calculateLiability(
-        entityId: String,
-        contradictions: List<Any>,
-        behavioralPatterns: Map<String, Any>
-    ): Int {
-        // Placeholder for liability calculation
-        return 0
+    fun calculateLiability(entityId: String, report: ContradictionReport): Int {
+        val involvement = report.affectedEntities[entityId]
+        return involvement?.liabilityScore ?: 0
+    }
+
+    /**
+     * Reset the module state for a new analysis.
+     */
+    fun reset() {
+        contradictionEngine?.reset()
     }
 }
