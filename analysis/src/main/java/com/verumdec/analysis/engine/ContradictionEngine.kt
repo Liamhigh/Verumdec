@@ -43,6 +43,13 @@ import java.util.logging.Logger
  */
 class ContradictionEngine {
     
+    companion object {
+        /** Threshold in days for considering timestamps as conflicting */
+        private const val DAY_DIFFERENCE_THRESHOLD_DAYS = 1L
+        /** Milliseconds in a day */
+        private const val MILLIS_PER_DAY = 24 * 60 * 60 * 1000L
+    }
+    
     private val logger = Logger.getLogger(ContradictionEngine::class.java.name)
     
     // Core components
@@ -393,9 +400,9 @@ class ContradictionEngine {
         val statementTime = statement.timestamp ?: return false
         val eventTime = event.timestamp
         
-        // More than 1 day difference is a conflict
-        val diffDays = kotlin.math.abs(statementTime - eventTime) / (24 * 60 * 60 * 1000)
-        return diffDays > 1
+        // More than threshold days difference is a conflict
+        val diffDays = kotlin.math.abs(statementTime - eventTime) / MILLIS_PER_DAY
+        return diffDays > DAY_DIFFERENCE_THRESHOLD_DAYS
     }
     
     /**

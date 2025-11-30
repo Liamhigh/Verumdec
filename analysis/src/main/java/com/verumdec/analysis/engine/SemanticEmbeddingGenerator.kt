@@ -85,8 +85,12 @@ class SemanticEmbeddingGenerator {
         val sentimentScore = calculateSentimentScore(text)
         val certaintyScore = calculateCertaintyScore(text)
         
-        // Normalize the embedding
-        val norm = sqrt(embedding.map { it * it }.sum())
+        // Normalize the embedding using a single loop for efficiency
+        var normSquared = 0f
+        for (i in embedding.indices) {
+            normSquared += embedding[i] * embedding[i]
+        }
+        val norm = sqrt(normSquared)
         if (norm > 0) {
             for (i in embedding.indices) {
                 embedding[i] = embedding[i] / norm

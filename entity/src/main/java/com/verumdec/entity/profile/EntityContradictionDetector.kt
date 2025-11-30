@@ -350,27 +350,27 @@ class EntityContradictionDetector {
     
     /**
      * Extract financial figures from a statement.
+     * Each pattern captures the amount in group 1 and identifies currency from the match.
      */
     private fun extractFinancialFigures(statement: Statement, profile: EntityProfile) {
-        // Pattern to match currency amounts
+        // Currency patterns with standardized group structure (amount in group 1)
+        data class CurrencyPattern(val regex: Regex, val currency: String)
+        
         val patterns = listOf(
-            Regex("\\$([0-9,]+\\.?[0-9]*)"),
-            Regex("([0-9,]+\\.?[0-9]*)\\s*(?:dollars|USD|AUD|GBP|EUR)"),
-            Regex("£([0-9,]+\\.?[0-9]*)"),
-            Regex("€([0-9,]+\\.?[0-9]*)")
+            CurrencyPattern(Regex("\\$([0-9,]+\\.?[0-9]*)"), "USD"),
+            CurrencyPattern(Regex("£([0-9,]+\\.?[0-9]*)"), "GBP"),
+            CurrencyPattern(Regex("€([0-9,]+\\.?[0-9]*)"), "EUR"),
+            CurrencyPattern(Regex("([0-9,]+\\.?[0-9]*)\\s*(?:dollars|USD)"), "USD"),
+            CurrencyPattern(Regex("([0-9,]+\\.?[0-9]*)\\s*(?:AUD)"), "AUD"),
+            CurrencyPattern(Regex("([0-9,]+\\.?[0-9]*)\\s*(?:GBP|pounds)"), "GBP"),
+            CurrencyPattern(Regex("([0-9,]+\\.?[0-9]*)\\s*(?:EUR|euros)"), "EUR")
         )
         
-        for (pattern in patterns) {
+        for ((pattern, currency) in patterns) {
             pattern.findAll(statement.text).forEach { match ->
                 val amountStr = match.groupValues[1].replace(",", "")
                 val amount = amountStr.toDoubleOrNull()
                 if (amount != null && amount > 0) {
-                    val currency = when {
-                        match.value.contains("$") -> "USD"
-                        match.value.contains("£") -> "GBP"
-                        match.value.contains("€") -> "EUR"
-                        else -> "USD"
-                    }
                     profile.addFinancialFigure(
                         FinancialFigure(
                             amount = amount,

@@ -33,6 +33,13 @@ data class Statement(
     val legalCategory: LegalCategory = LegalCategory.GENERAL,
     val embedding: FloatArray? = null
 ) {
+    /**
+     * Equality is based on id only. This is intentional because:
+     * - Statements are uniquely identified by their id
+     * - The embedding field is mutable and updated after indexing
+     * - Two statements with the same id represent the same logical statement
+     *   even if embeddings differ during processing
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Statement) return false

@@ -63,7 +63,7 @@ class TimelineContradictionDetector {
                 entityIds = listOf(statement.speaker),
                 statementIds = listOf(statement.id),
                 documentId = statement.documentId,
-                confidence = if (statement.timestamp != null) 1.0 else 0.5
+                confidence = 1.0 // Timestamp was verified non-null above
             )
             events.add(event)
         }

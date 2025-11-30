@@ -98,12 +98,15 @@ object TimelineModule {
 
     /**
      * Find the last occurrence of a specific day of the week.
+     * If today is the target day, returns last week's occurrence.
      */
     private fun findLastDayOfWeek(fromDate: Long, targetDayOfWeek: Int): Long {
         val calendar = java.util.Calendar.getInstance()
         calendar.timeInMillis = fromDate
         val currentDayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
         var daysBack = currentDayOfWeek - targetDayOfWeek
+        // If daysBack is 0 (same day) or negative, go back a full week
+        // "Last Friday" on a Friday means the previous Friday, not today
         if (daysBack <= 0) daysBack += 7
         return fromDate - (daysBack * 24 * 60 * 60 * 1000L)
     }

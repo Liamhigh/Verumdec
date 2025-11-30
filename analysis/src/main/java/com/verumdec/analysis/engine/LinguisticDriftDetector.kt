@@ -500,11 +500,15 @@ class LinguisticDriftDetector {
     }
     
     /**
-     * Count keyword matches in text.
+     * Count keyword matches in text using word boundary matching.
      */
     private fun countMatches(text: String, keywords: List<String>): Int {
         val lower = text.lowercase()
-        return keywords.count { lower.contains(it) }
+        return keywords.count { keyword ->
+            // Use word boundary pattern to avoid substring false positives
+            val pattern = Regex("\\b${Regex.escape(keyword)}\\b")
+            pattern.containsMatchIn(lower)
+        }
     }
     
     /**
