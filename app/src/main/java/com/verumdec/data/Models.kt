@@ -215,6 +215,7 @@ enum class BehaviorType {
 
 /**
  * The final sealed forensic report.
+ * Updated to include new Leveler engine output fields.
  */
 data class ForensicReport(
     val id: String = UUID.randomUUID().toString(),
@@ -228,7 +229,25 @@ data class ForensicReport(
     val liabilityScores: Map<String, LiabilityScore>,
     val narrativeSections: NarrativeSections,
     val sha512Hash: String,
-    val version: String = "1.0.0"
+    val version: String = "2.0.0",
+    // NEW: Leveler engine output fields
+    val detectedSpeakerCount: Int = 0,
+    val contradictionTypes: Map<String, Int> = emptyMap(),
+    val timestampNormalizationMode: String = "DOCUMENT_RELATIVE",
+    val extractionSummary: ExtractionSummaryDTO = ExtractionSummaryDTO(),
+    val behaviorShiftBreakdown: Map<String, Int> = emptyMap()
+)
+
+/**
+ * Extraction summary from Leveler engine.
+ */
+data class ExtractionSummaryDTO(
+    val totalDocuments: Int = 0,
+    val processedDocuments: Int = 0,
+    val totalStatements: Int = 0,
+    val speakersIdentified: Int = 0,
+    val timelineEvents: Int = 0,
+    val processingDurationMs: Long = 0
 )
 
 /**
