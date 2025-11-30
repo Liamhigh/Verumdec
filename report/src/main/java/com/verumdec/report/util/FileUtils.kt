@@ -146,10 +146,7 @@ object FileUtils {
 
             // Verify the hash file is readable and contains valid hash data
             val storedHash = hashFile.readText().trim()
-            
-            // Basic validation: SHA-512 hash should be 128 hex characters
-            storedHash.length == SHA512_HEX_LENGTH && 
-                storedHash.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
+            isValidSHA512Hash(storedHash)
         } catch (e: Exception) {
             e.printStackTrace()
             false
@@ -184,6 +181,17 @@ object FileUtils {
         val digest = MessageDigest.getInstance("SHA-512")
         val hashBytes = digest.digest(data)
         return bytesToHex(hashBytes)
+    }
+
+    /**
+     * Validate that a string is a valid SHA-512 hash format.
+     *
+     * @param hash The hash string to validate
+     * @return True if the string is a valid 128-character hexadecimal SHA-512 hash
+     */
+    fun isValidSHA512Hash(hash: String): Boolean {
+        return hash.length == SHA512_HEX_LENGTH && 
+            hash.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
     }
 
     /**

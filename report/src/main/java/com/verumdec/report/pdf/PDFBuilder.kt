@@ -369,8 +369,8 @@ class PDFBuilder(private val context: Context) {
         }
 
         // Apply headers and footers with a placeholder hash initially
-        // The truncated hash will be shown in the footer
-        val placeholderHash = "0".repeat(SHA512_HEX_LENGTH) // Temporary placeholder
+        // Using 'f' repeated to indicate "pending final hash" - distinct from any real hash
+        val placeholderHash = "f".repeat(SHA512_HEX_LENGTH) // Placeholder for pending hash computation
         headerFooterRenderer.applyToAllPages(
             document = doc,
             documentTitle = documentTitle,
