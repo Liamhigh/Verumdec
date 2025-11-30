@@ -71,6 +71,7 @@
     <string name="btn_proceed_anyway">Proceed Anyway</string>
     <string name="btn_acknowledge">I Understand</string>
     <string name="btn_dismiss">Dismiss</string>
+    <string name="btn_view_full_timeline">View Full Timeline</string>
     
     <!-- Content descriptions -->
     <string name="cd_app_logo">Verum Omnis Logo</string>

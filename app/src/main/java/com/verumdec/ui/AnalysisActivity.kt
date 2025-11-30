@@ -6,18 +6,21 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.verumdec.R
 import com.verumdec.data.*
 import com.verumdec.databinding.ActivityAnalysisBinding
 import com.verumdec.engine.ContradictionEngine
+import com.verumdec.viewmodel.ReportGenerationViewModel
 import kotlinx.coroutines.launch
 
 class AnalysisActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAnalysisBinding
     private lateinit var engine: ContradictionEngine
+    private lateinit var reportViewModel: ReportGenerationViewModel
 
     companion object {
         var currentCase: Case? = null
@@ -29,10 +32,15 @@ class AnalysisActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         engine = ContradictionEngine(this)
+        reportViewModel = ViewModelProvider(this)[ReportGenerationViewModel::class.java]
 
         setupToolbar()
         displayResults()
         setupButtons()
+        observeViewModel()
+        
+        // Show constitution alert if critical contradictions exist
+        checkForCriticalContradictions()
     }
 
     private fun setupToolbar() {
@@ -92,41 +100,68 @@ class AnalysisActivity : AppCompatActivity() {
         binding.btnGenerateReport.setOnClickListener {
             generateReport()
         }
+        
+        binding.btnViewFullTimeline.setOnClickListener {
+            viewFullTimeline()
+        }
+    }
+
+    private fun observeViewModel() {
+        reportViewModel.generationState.observe(this) { state ->
+            when (state) {
+                is ReportGenerationViewModel.GenerationState.Generating -> {
+                    binding.btnGenerateReport.isEnabled = false
+                    binding.btnGenerateReport.text = state.message
+                }
+                is ReportGenerationViewModel.GenerationState.Complete -> {
+                    binding.btnGenerateReport.isEnabled = true
+                    binding.btnGenerateReport.text = getString(R.string.btn_generate_report)
+                    
+                    // Open report viewer
+                    NavigationHelper.navigateToReportViewer(this, state.file)
+                }
+                is ReportGenerationViewModel.GenerationState.Error -> {
+                    binding.btnGenerateReport.isEnabled = true
+                    binding.btnGenerateReport.text = getString(R.string.btn_generate_report)
+                    Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                    binding.btnGenerateReport.isEnabled = true
+                    binding.btnGenerateReport.text = getString(R.string.btn_generate_report)
+                }
+            }
+        }
     }
 
     private fun generateReport() {
         val case = currentCase ?: return
-
-        binding.btnGenerateReport.isEnabled = false
-        binding.btnGenerateReport.text = "Generating..."
-
-        lifecycleScope.launch {
-            try {
-                val file = engine.generateReport(case)
-                
-                binding.btnGenerateReport.isEnabled = true
-                binding.btnGenerateReport.text = getString(R.string.btn_generate_report)
-
-                // Share the PDF
-                val uri = FileProvider.getUriForFile(
-                    this@AnalysisActivity,
-                    "${packageName}.fileprovider",
-                    file
-                )
-
-                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "application/pdf"
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        reportViewModel.generateReport(case)
+    }
+    
+    private fun checkForCriticalContradictions() {
+        val case = currentCase ?: return
+        val criticalCount = case.contradictions.count { it.severity == Severity.CRITICAL }
+        
+        if (criticalCount > 0) {
+            NavigationHelper.showConstitutionAlert(
+                context = this,
+                fragmentManager = supportFragmentManager,
+                case = case,
+                onAcknowledge = {
+                    // User acknowledged the alert
+                },
+                onDismiss = {
+                    // User dismissed the alert
                 }
-
-                startActivity(Intent.createChooser(shareIntent, "Share Report"))
-
-            } catch (e: Exception) {
-                binding.btnGenerateReport.isEnabled = true
-                binding.btnGenerateReport.text = getString(R.string.btn_generate_report)
-                Toast.makeText(this@AnalysisActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            }
+            )
         }
+    }
+
+    /**
+     * Navigate to the full timeline view.
+     */
+    fun viewFullTimeline() {
+        val case = currentCase ?: return
+        NavigationHelper.navigateToTimeline(this, case)
     }
 }

@@ -1,14 +1,13 @@
 package com.verumdec.ui
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -18,14 +17,17 @@ import com.verumdec.data.*
 import com.verumdec.databinding.ActivityMainBinding
 import com.verumdec.engine.ContradictionEngine
 import com.verumdec.engine.EvidenceProcessor
+import com.verumdec.viewmodel.CaseManagementViewModel
+import com.verumdec.viewmodel.EngineExecutionViewModel
 import kotlinx.coroutines.launch
-import java.util.*
 
 class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var engine: ContradictionEngine
     private lateinit var evidenceAdapter: EvidenceAdapter
+    private lateinit var caseViewModel: CaseManagementViewModel
+    private lateinit var engineViewModel: EngineExecutionViewModel
     
     private var currentCase: Case? = null
     private val evidenceUris = mutableMapOf<String, Uri>()
@@ -42,7 +44,11 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
         setContentView(binding.root)
 
         engine = ContradictionEngine(this)
+        caseViewModel = ViewModelProvider(this)[CaseManagementViewModel::class.java]
+        engineViewModel = ViewModelProvider(this)[EngineExecutionViewModel::class.java]
+        
         setupUI()
+        observeViewModels()
     }
 
     private fun setupUI() {
@@ -60,15 +66,61 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
 
         // Setup buttons
         binding.btnNewCase.setOnClickListener { showNewCaseDialog() }
-        binding.btnOpenCase.setOnClickListener { 
-            Toast.makeText(this, "Open case feature coming soon", Toast.LENGTH_SHORT).show()
-        }
+        binding.btnOpenCase.setOnClickListener { showOpenCaseDialog() }
         binding.btnAddEvidence.setOnClickListener { pickFile() }
         binding.fabAdd.setOnClickListener { pickFile() }
         binding.btnAnalyze.setOnClickListener { runAnalysis() }
         binding.btnViewResults.setOnClickListener { viewResults() }
 
         updateUI()
+    }
+    
+    private fun observeViewModels() {
+        // Observe case list for Open Case dialog
+        caseViewModel.cases.observe(this) { cases ->
+            // Cases list is available for the dialog
+        }
+        
+        caseViewModel.currentCase.observe(this) { case ->
+            if (case != null) {
+                currentCase = case
+                evidenceUris.clear()
+                evidenceAdapter.submitList(case.evidence.toList())
+                updateUI()
+            }
+        }
+        
+        caseViewModel.operationState.observe(this) { state ->
+            when (state) {
+                is CaseManagementViewModel.OperationState.SaveComplete -> {
+                    Toast.makeText(this, "Case saved", Toast.LENGTH_SHORT).show()
+                }
+                is CaseManagementViewModel.OperationState.LoadComplete -> {
+                    Toast.makeText(this, "Case loaded", Toast.LENGTH_SHORT).show()
+                }
+                is CaseManagementViewModel.OperationState.DeleteComplete -> {
+                    Toast.makeText(this, "Case deleted", Toast.LENGTH_SHORT).show()
+                }
+                is CaseManagementViewModel.OperationState.Error -> {
+                    Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+                }
+                else -> { /* Idle, Loading states */ }
+            }
+        }
+        
+        // Observe engine execution state
+        engineViewModel.executionState.observe(this) { state ->
+            when (state) {
+                is EngineExecutionViewModel.ExecutionState.Complete -> {
+                    currentCase = engineViewModel.currentCase.value
+                    updateUI()
+                }
+                is EngineExecutionViewModel.ExecutionState.Error -> {
+                    Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+                }
+                else -> { /* Idle, Running, Cancelled */ }
+            }
+        }
     }
 
     private fun showNewCaseDialog() {
@@ -89,9 +141,29 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
             .setNegativeButton("Cancel", null)
             .show()
     }
+    
+    private fun showOpenCaseDialog() {
+        val cases = caseViewModel.cases.value ?: emptyList()
+        
+        if (cases.isEmpty()) {
+            Toast.makeText(this, "No saved cases found", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val caseNames = cases.map { "${it.name} (${it.evidenceCount} files)" }.toTypedArray()
+        
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Open Case")
+            .setItems(caseNames) { _, which ->
+                val selectedCase = cases[which]
+                caseViewModel.loadCase(selectedCase.id)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
 
     private fun createNewCase(name: String) {
-        currentCase = Case(name = name)
+        currentCase = caseViewModel.createCase(name)
         evidenceUris.clear()
         evidenceAdapter.submitList(emptyList())
         binding.cardStats.visibility = View.GONE
@@ -173,6 +245,9 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
             try {
                 currentCase = engine.analyze(case, evidenceUris, this@MainActivity)
                 progressDialog.dismiss()
+                
+                // Save case after analysis
+                currentCase?.let { caseViewModel.saveCase(it) }
             } catch (e: Exception) {
                 progressDialog.dismiss()
                 Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
@@ -182,13 +257,7 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
 
     private fun viewResults() {
         val case = currentCase ?: return
-        
-        val intent = Intent(this, AnalysisActivity::class.java).apply {
-            putExtra("case_id", case.id)
-        }
-        // Store case in companion object for simplicity (in production use proper state management)
-        AnalysisActivity.currentCase = case
-        startActivity(intent)
+        NavigationHelper.navigateToAnalysis(this, case)
     }
 
     private fun updateUI() {
