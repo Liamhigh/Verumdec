@@ -13,6 +13,10 @@ import java.util.UUID
 class ConstitutionBrain {
 
     companion object {
+        // Timestamp validation constants
+        private const val MS_PER_DAY = 86400000L // 24 * 60 * 60 * 1000
+        private const val JANUARY_1_1990_MS = 631152000000L // Unix timestamp for 1990-01-01 00:00:00 UTC
+
         // Verum Omnis Constitutional Rules
         private val RULES = listOf(
             Rule(
@@ -284,14 +288,14 @@ class ConstitutionBrain {
         }
 
         val now = System.currentTimeMillis()
-        val futureTimestamps = context.evidenceTimestamps.filter { it > now + 86400000 } // 1 day tolerance
+        val futureTimestamps = context.evidenceTimestamps.filter { it > now + MS_PER_DAY } // 1 day tolerance
 
         if (futureTimestamps.isNotEmpty()) {
             return Pair(false, "${futureTimestamps.size} timestamp(s) are in the future - validation required")
         }
 
         // Check for suspiciously old timestamps (before 1990)
-        val ancientTimestamps = context.evidenceTimestamps.filter { it < 631152000000L }
+        val ancientTimestamps = context.evidenceTimestamps.filter { it < JANUARY_1_1990_MS }
         if (ancientTimestamps.isNotEmpty()) {
             return Pair(false, "${ancientTimestamps.size} timestamp(s) are before 1990 - likely invalid")
         }

@@ -29,6 +29,10 @@ class VideoBrain {
             "vp09" to "VP9",
             "av01" to "AV1"
         )
+
+        // Default resolution when actual dimensions cannot be extracted
+        private const val DEFAULT_VIDEO_WIDTH = 1920
+        private const val DEFAULT_VIDEO_HEIGHT = 1080
     }
 
     /**
@@ -248,8 +252,8 @@ class VideoBrain {
 
         // Default resolution if not found
         if (width == 0 || height == 0) {
-            width = 1920
-            height = 1080
+            width = DEFAULT_VIDEO_WIDTH
+            height = DEFAULT_VIDEO_HEIGHT
         }
 
         return ContainerInfo(

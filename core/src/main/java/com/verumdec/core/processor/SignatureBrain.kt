@@ -26,6 +26,13 @@ class SignatureBrain {
         private const val MIN_SIGNATURE_HEIGHT = 20
         private const val UNIFORM_BACKGROUND_THRESHOLD = 0.95f
         private const val EDGE_SHARPNESS_THRESHOLD = 0.8f
+
+        // Bounding box estimation constants
+        private const val SIZE_TO_WIDTH_RATIO = 0.5 // Estimate width from file size
+        private const val MIN_ESTIMATED_WIDTH = 100
+        private const val MAX_ESTIMATED_WIDTH = 1000
+        private const val WIDTH_TO_HEIGHT_RATIO = 3 // Signatures are typically 3x wider than tall
+        private const val DEFAULT_MARGIN = 10
     }
 
     // Store reference signatures for comparison
@@ -305,12 +312,14 @@ class SignatureBrain {
     private fun extractSignatureBounds(bytes: ByteArray): BoundingBox {
         // Simplified - return estimated bounds based on image size
         // Real implementation would analyze pixel values to find ink bounds
-        val estimatedWidth = kotlin.math.sqrt(bytes.size.toDouble() * 0.5).toInt().coerceIn(100, 1000)
-        val estimatedHeight = estimatedWidth / 3
+        val estimatedWidth = kotlin.math.sqrt(bytes.size.toDouble() * SIZE_TO_WIDTH_RATIO)
+            .toInt()
+            .coerceIn(MIN_ESTIMATED_WIDTH, MAX_ESTIMATED_WIDTH)
+        val estimatedHeight = estimatedWidth / WIDTH_TO_HEIGHT_RATIO
 
         return BoundingBox(
-            x = 10,
-            y = 10,
+            x = DEFAULT_MARGIN,
+            y = DEFAULT_MARGIN,
             width = estimatedWidth,
             height = estimatedHeight
         )

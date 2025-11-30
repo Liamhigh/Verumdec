@@ -22,6 +22,7 @@ class AudioBrain {
 
         // Audio analysis constants
         private const val SEGMENT_DURATION_MS = 5000L // 5 second segments
+        private const val MAX_AUDIO_DURATION_MS = 24L * 60L * 60L * 1000L // Maximum 24 hours
     }
 
     /**
@@ -538,7 +539,7 @@ class AudioBrain {
         }
 
         // Check duration validity
-        val durationValid = audioInfo.duration > 0 && audioInfo.duration < 24 * 60 * 60 * 1000L // Max 24 hours
+        val durationValid = audioInfo.duration > 0 && audioInfo.duration < MAX_AUDIO_DURATION_MS
 
         return AudioMetadataConsistency(
             consistent = discrepancies.isEmpty(),

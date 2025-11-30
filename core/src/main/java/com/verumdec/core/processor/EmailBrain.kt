@@ -20,6 +20,11 @@ class EmailBrain {
         private val REQUIRED_HEADERS = listOf("from", "to", "date", "subject")
         private val AUTHENTICATION_HEADERS = listOf("received-spf", "dkim-signature", "authentication-results", "arc-seal")
 
+        // Time constants for validation
+        private const val MS_PER_DAY = 24 * 60 * 60 * 1000L
+        private const val DAYS_PER_YEAR = 365L
+        private const val MS_PER_YEAR = DAYS_PER_YEAR * MS_PER_DAY
+
         // Common freemail domains
         private val FREEMAIL_DOMAINS = setOf(
             "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com",
@@ -542,13 +547,13 @@ class EmailBrain {
         val date = headers.date ?: return false
         val now = Date()
 
-        // Check if date is in the future
-        if (date.after(Date(now.time + 24 * 60 * 60 * 1000))) {
+        // Check if date is in the future (with 1 day tolerance)
+        if (date.after(Date(now.time + MS_PER_DAY))) {
             return true
         }
 
         // Check if date is unreasonably old (more than 1 year)
-        if (date.before(Date(now.time - 365L * 24 * 60 * 60 * 1000))) {
+        if (date.before(Date(now.time - MS_PER_YEAR))) {
             return true
         }
 
