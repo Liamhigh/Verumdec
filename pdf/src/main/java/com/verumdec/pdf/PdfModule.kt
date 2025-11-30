@@ -1,82 +1,70 @@
 package com.verumdec.pdf
 
+import android.content.Context
+import com.verumdec.pdf.reader.PdfReader
+import com.verumdec.pdf.writer.PdfWriter
+
 /**
- * PDF Module - Placeholder
+ * PDF Module - PDF Processing
  *
  * This module handles PDF processing, parsing, and metadata extraction.
- * It provides utilities for extracting text, metadata, and structural information from PDF documents.
+ * It provides utilities for reading from and writing to PDF documents.
  *
- * ## Key Responsibilities:
- * - Extract plain text from PDF documents
- * - Parse document metadata (creation date, author, etc.)
- * - Extract embedded images and attachments
- * - Analyze document structure
- *
- * ## Pipeline Stage: 1 - INPUT LAYER (Evidence Ingestion)
- * Handles: PDFs and their embedded content
- *
- * ## Future Implementation:
- * - Apache PDFBox integration for Android
- * - Text extraction with position information
- * - Metadata parsing (dates, EXIF, timestamps)
- * - Embedded content extraction
- * - Digital signature detection
- * - Form field extraction
- *
- * ## Extracted Data:
- * - Plain text content
- * - Document metadata (creation date, modification date, author)
- * - File creation timestamps
- * - Embedded images
- * - Form field values
- *
- * @see com.verumdec.core.CoreModule
+ * ## Key Features:
+ * - Extract text from PDF documents
+ * - Parse document metadata
+ * - Create new PDF documents
+ * - Add watermarks and QR codes
  */
 object PdfModule {
 
-    /**
-     * Module version for tracking compatibility
-     */
     const val VERSION = "1.0.0"
-
-    /**
-     * Module name identifier
-     */
     const val NAME = "pdf"
+
+    private var isInitialized = false
+    private var appContext: Context? = null
+    
+    private var pdfReader: PdfReader? = null
+    private var pdfWriter: PdfWriter? = null
 
     /**
      * Initialize the PDF module.
-     *
-     * TODO: Implement initialization logic
-     * - Initialize PDFBox
-     * - Configure font handling
-     * - Set up memory management
      */
-    fun initialize() {
-        // Placeholder for module initialization
+    fun initialize(context: Context) {
+        if (isInitialized) return
+        
+        appContext = context.applicationContext
+        pdfReader = PdfReader()
+        pdfWriter = PdfWriter()
+        
+        isInitialized = true
     }
 
     /**
-     * Extract text from a PDF document.
-     *
-     * TODO: Implement PDF text extraction
-     * @param pdfPath Path to the PDF file
-     * @return Extracted text content
+     * Get PDF reader.
+     */
+    fun getPdfReader(): PdfReader {
+        return pdfReader ?: throw IllegalStateException("PdfModule not initialized")
+    }
+
+    /**
+     * Get PDF writer.
+     */
+    fun getPdfWriter(): PdfWriter {
+        return pdfWriter ?: throw IllegalStateException("PdfModule not initialized")
+    }
+
+    /**
+     * Extract text (convenience method).
      */
     fun extractText(pdfPath: String): String {
-        // Placeholder for PDF text extraction
-        return ""
+        return pdfReader?.extractText(pdfPath) ?: ""
     }
 
     /**
-     * Extract metadata from a PDF document.
-     *
-     * TODO: Implement PDF metadata extraction
-     * @param pdfPath Path to the PDF file
-     * @return Map of metadata key-value pairs
+     * Extract metadata (convenience method).
      */
     fun extractMetadata(pdfPath: String): Map<String, String> {
-        // Placeholder for PDF metadata extraction
-        return emptyMap()
+        return pdfReader?.extractMetadata(pdfPath) ?: emptyMap()
     }
 }
