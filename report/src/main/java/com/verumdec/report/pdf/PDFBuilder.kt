@@ -64,6 +64,9 @@ class PDFBuilder(private val context: Context) {
         /** Default watermark opacity */
         private const val WATERMARK_OPACITY = 0.14f
 
+        /** SHA-512 hash length in hexadecimal characters */
+        private const val SHA512_HEX_LENGTH = 128
+
         /**
          * Initialize PDFBox for Android. Must be called once before using PDFBuilder.
          *
@@ -367,7 +370,7 @@ class PDFBuilder(private val context: Context) {
 
         // Apply headers and footers with a placeholder hash initially
         // The truncated hash will be shown in the footer
-        val placeholderHash = "0".repeat(128) // Temporary placeholder
+        val placeholderHash = "0".repeat(SHA512_HEX_LENGTH) // Temporary placeholder
         headerFooterRenderer.applyToAllPages(
             document = doc,
             documentTitle = documentTitle,
@@ -393,6 +396,11 @@ class PDFBuilder(private val context: Context) {
     /**
      * Rebuild the document with the correct hash value.
      * This ensures the displayed hash and QR code contain the accurate SHA-512.
+     *
+     * Design Note: While reloading the document is slightly inefficient, it ensures
+     * correctness of the cryptographic seal. Alternative approaches (like reserving
+     * space for the hash) would complicate the PDF structure. Since forensic reports
+     * are generated infrequently, this trade-off prioritizes correctness over performance.
      */
     private fun rebuildWithCorrectHash(
         originalContentBytes: ByteArray,
@@ -402,11 +410,8 @@ class PDFBuilder(private val context: Context) {
         // Reload the document from bytes
         val doc = PDDocument.load(originalContentBytes)
 
-        // Update headers/footers with correct hash by appending correction info
-        // Since we can't easily modify existing text, we'll add the QR code
-        // which contains the authoritative hash for verification
-
         // Add QR code to the last page with the correct hash
+        // The QR code serves as the authoritative source of the verification hash
         addQRCodeToLastPage(doc, sha512Hash)
 
         // Generate the final PDF bytes

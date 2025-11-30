@@ -1,7 +1,6 @@
 package com.verumdec.report.util
 
 import android.content.Context
-import android.os.Build
 import android.os.Environment
 import java.io.File
 import java.io.FileOutputStream
@@ -24,6 +23,9 @@ object FileUtils {
     private const val PDF_EXTENSION = ".pdf"
     private const val HASH_FILE_EXTENSION = ".sha512"
     private const val DATE_FORMAT = "yyyyMMdd_HHmmss"
+
+    /** SHA-512 hash length in hexadecimal characters (512 bits / 4 bits per hex char = 128) */
+    private const val SHA512_HEX_LENGTH = 128
 
     /**
      * Save a sealed PDF report to local storage.
@@ -87,21 +89,17 @@ object FileUtils {
 
     /**
      * Get the directory for sealed reports.
-     * Uses app-specific external storage on Android 12+ for better compatibility.
+     * Uses app-specific external storage for Android 12+ compatibility.
+     * Falls back to internal storage if external is unavailable.
      *
      * @param context Android context
      * @return File object representing the sealed reports directory
      */
     fun getSealedReportsDirectory(context: Context): File {
-        val baseDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Android 12+ (API 31+): Use app-specific external storage
-            context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-                ?: context.filesDir
-        } else {
-            // Older Android versions: Use app-specific external storage
-            context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-                ?: context.filesDir
-        }
+        // Use app-specific external storage (no permissions needed on Android 12+)
+        // Falls back to internal storage if external is unavailable
+        val baseDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+            ?: context.filesDir
 
         return File(baseDir, "$REPORTS_DIRECTORY/$SEALED_REPORTS_SUBDIRECTORY")
     }
@@ -124,18 +122,19 @@ object FileUtils {
     }
 
     /**
-     * Verify a sealed report's integrity by comparing its hash.
+     * Verify a sealed report's integrity by checking its hash file.
      *
      * Note: The stored hash represents the document content before the QR verification
      * seal was added. For accurate verification, one would need to parse the PDF,
      * extract the hash from the QR code, and compare it against the stored hash file.
-     * This simplified verification checks if the hash file exists and is readable.
+     * This simplified verification checks if the hash file exists and contains valid data.
      * Full cryptographic verification requires QR code scanning from the PDF.
      *
-     * @param context Android context (unused, kept for API consistency)
+     * @param context Android context (reserved for future use)
      * @param pdfFile The PDF file to verify
-     * @return True if the hash file exists and is readable, false otherwise
+     * @return True if the hash file exists and contains valid SHA-512 hash, false otherwise
      */
+    @Suppress("UNUSED_PARAMETER")
     fun verifySealedReport(context: Context, pdfFile: File): Boolean {
         return try {
             val hashFileName = pdfFile.name.replace(PDF_EXTENSION, HASH_FILE_EXTENSION)
@@ -149,7 +148,8 @@ object FileUtils {
             val storedHash = hashFile.readText().trim()
             
             // Basic validation: SHA-512 hash should be 128 hex characters
-            storedHash.length == 128 && storedHash.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
+            storedHash.length == SHA512_HEX_LENGTH && 
+                storedHash.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
         } catch (e: Exception) {
             e.printStackTrace()
             false

@@ -50,7 +50,7 @@ object QRCodeGenerator {
      */
     fun generateQRCode(content: String, size: Int = DEFAULT_QR_SIZE): Bitmap? {
         return try {
-            val hints = hashMapOf<EncodeHintType, Any>(
+            val hints = mapOf<EncodeHintType, Any>(
                 EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H,
                 EncodeHintType.MARGIN to DEFAULT_MARGIN,
                 EncodeHintType.CHARACTER_SET to "UTF-8"
