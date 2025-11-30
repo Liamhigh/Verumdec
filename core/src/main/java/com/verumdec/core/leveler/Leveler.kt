@@ -22,6 +22,23 @@ import java.util.UUID
  */
 class Leveler(private val context: Context) {
 
+    companion object {
+        /** Maximum document text length to process (50KB) */
+        private const val MAX_DOCUMENT_TEXT_LENGTH = 50000
+        
+        /** Liability scoring weights */
+        private const val CONTRADICTION_COUNT_WEIGHT = 5
+        private const val CONTRADICTION_SEVERITY_WEIGHT = 3
+        private const val MAX_CONTRADICTION_SCORE = 40f
+        private const val BEHAVIOR_SHIFT_COUNT_WEIGHT = 4
+        private const val BEHAVIOR_SHIFT_SEVERITY_WEIGHT = 2
+        private const val MAX_BEHAVIORAL_SCORE = 30f
+        private const val MAX_CONSISTENCY_SCORE = 15f
+        private const val STATEMENT_COUNT_DIVISOR = 10.0
+        private const val STATEMENT_COUNT_WEIGHT = 5
+        private const val MAX_EVIDENCE_SCORE = 15f
+    }
+
     /**
      * Analysis progress listener for UI updates.
      */
@@ -203,8 +220,8 @@ class Leveler(private val context: Context) {
         val extractedText = if (uri != null) {
             try {
                 context.contentResolver.openInputStream(uri)?.use { stream ->
-                    // For now, just read as text - PDF processing would go here
-                    stream.bufferedReader().readText().take(50000)
+                    // Read and limit text to MAX_DOCUMENT_TEXT_LENGTH to prevent memory issues
+                    stream.bufferedReader().readText().take(MAX_DOCUMENT_TEXT_LENGTH)
                 } ?: ""
             } catch (e: Exception) {
                 ""
@@ -623,11 +640,13 @@ class Leveler(private val context: Context) {
                 .average()
                 .let { if (it.isNaN()) 0.0 else it }
 
-            // Calculate component scores
-            val contradictionScore = (speakerContradictions * 5 + avgContradictionSeverity * 3).toFloat().coerceIn(0f, 40f)
-            val behavioralScore = (speakerShifts * 4 + avgShiftSeverity * 2).toFloat().coerceIn(0f, 30f)
-            val consistencyScore = ((1 - profile.averageCertainty) * 15).toFloat().coerceIn(0f, 15f)
-            val evidenceScore = (profile.statementCount / 10.0 * 5).toFloat().coerceIn(0f, 15f)
+            // Calculate component scores using defined weights
+            val contradictionScore = (speakerContradictions * CONTRADICTION_COUNT_WEIGHT + 
+                avgContradictionSeverity * CONTRADICTION_SEVERITY_WEIGHT).toFloat().coerceIn(0f, MAX_CONTRADICTION_SCORE)
+            val behavioralScore = (speakerShifts * BEHAVIOR_SHIFT_COUNT_WEIGHT + 
+                avgShiftSeverity * BEHAVIOR_SHIFT_SEVERITY_WEIGHT).toFloat().coerceIn(0f, MAX_BEHAVIORAL_SCORE)
+            val consistencyScore = ((1 - profile.averageCertainty) * MAX_CONSISTENCY_SCORE).toFloat().coerceIn(0f, MAX_CONSISTENCY_SCORE)
+            val evidenceScore = (profile.statementCount / STATEMENT_COUNT_DIVISOR * STATEMENT_COUNT_WEIGHT).toFloat().coerceIn(0f, MAX_EVIDENCE_SCORE)
 
             val overallScore = (contradictionScore + behavioralScore + consistencyScore + evidenceScore).coerceIn(0f, 100f)
 
