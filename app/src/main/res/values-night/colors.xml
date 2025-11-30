@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors - Adjusted for dark mode -->
+    <color name="primary">#5C6BC0</color>
+    <color name="primary_dark">#3949AB</color>
+    <color name="primary_light">#7986CB</color>
+    <color name="on_primary">#FFFFFF</color>
+    
+    <!-- Secondary Colors -->
+    <color name="secondary">#4DD0E1</color>
+    <color name="secondary_dark">#00ACC1</color>
+    <color name="on_secondary">#000000</color>
+    
+    <!-- Background and Surface - Dark theme -->
+    <color name="background">#121212</color>
+    <color name="surface">#1E1E1E</color>
+    <color name="on_background">#E0E0E0</color>
+    <color name="on_surface">#E0E0E0</color>
+    
+    <!-- Status Colors - Adjusted for visibility -->
+    <color name="success">#66BB6A</color>
+    <color name="warning">#FFA726</color>
+    <color name="error">#EF5350</color>
+    <color name="info">#42A5F5</color>
+    
+    <!-- Severity Colors -->
+    <color name="severity_critical">#EF5350</color>
+    <color name="severity_high">#FFA726</color>
+    <color name="severity_medium">#FFEE58</color>
+    <color name="severity_low">#66BB6A</color>
+    
+    <!-- Liability Score Colors -->
+    <color name="liability_high">#EF5350</color>
+    <color name="liability_medium">#FFA726</color>
+    <color name="liability_low">#66BB6A</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#E0E0E0</color>
+    <color name="text_secondary">#9E9E9E</color>
+    <color name="text_hint">#757575</color>
+    
+    <!-- Card and Divider -->
+    <color name="card_background">#2D2D2D</color>
+    <color name="divider">#424242</color>
+    
+    <!-- Accent for highlights -->
+    <color name="accent">#FFD740</color>
+    
+    <!-- Contradiction highlight -->
+    <color name="contradiction_highlight">#4A2828</color>
+    
+    <!-- Timeline colors -->
+    <color name="timeline_line">#616161</color>
+    <color name="timeline_node">#5C6BC0</color>
+</resources>
