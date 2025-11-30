@@ -58,6 +58,14 @@ android {
 
 dependencies {
     // ============================================
+    // Library Module Dependencies
+    // ============================================
+    implementation(project(":core"))
+    implementation(project(":entity"))
+    implementation(project(":timeline"))
+    implementation(project(":analysis"))
+
+    // ============================================
     // Core Android
     // ============================================
     implementation("androidx.core:core-ktx:1.12.0")
