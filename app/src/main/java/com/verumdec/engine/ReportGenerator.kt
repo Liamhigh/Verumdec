@@ -36,10 +36,16 @@ class ReportGenerator(private val context: Context) {
     private val lineHeight = 14f
     
     /**
-     * Alpha value for invisible text layer (1% opacity = ~3 out of 255).
+     * Alpha value for invisible text layer.
+     * Value: 3 out of 255 = ~1.18% opacity
      * This makes text invisible to human users but still parseable by AI/text extraction tools.
      */
     private val invisibleTextAlpha = 3
+    
+    /**
+     * Alpha value for visible text layer (full opacity).
+     */
+    private val visibleTextAlpha = 255
 
     /**
      * Generate a complete forensic report.
@@ -144,6 +150,20 @@ class ReportGenerator(private val context: Context) {
         val invisibleBodyPaint = createInvisiblePaint(bodyPaint)
         val invisibleLabelPaint = createInvisiblePaint(labelPaint)
         val invisibleSeverityPaints = severityPaints.mapValues { createInvisiblePaint(it.value) }
+        
+        // Paint mapping for efficient lookup - maps visible paints to their invisible counterparts
+        val paintMapping: Map<Paint, Paint> = buildMap {
+            put(titlePaint, invisibleTitlePaint)
+            put(headingPaint, invisibleHeadingPaint)
+            put(subheadingPaint, invisibleSubheadingPaint)
+            put(bodyPaint, invisibleBodyPaint)
+            put(labelPaint, invisibleLabelPaint)
+            severityPaints.forEach { (severity, visiblePaint) ->
+                invisibleSeverityPaints[severity]?.let { invisiblePaint ->
+                    put(visiblePaint, invisiblePaint)
+                }
+            }
+        }
 
         fun startNewPage() {
             currentPage?.let { pdfDocument.finishPage(it) }
@@ -210,19 +230,8 @@ class ReportGenerator(private val context: Context) {
 
         // Convenience wrappers for different text styles
         fun drawText(text: String, paint: Paint, indent: Float = 0f) {
-            val invisiblePaint = when (paint) {
-                titlePaint -> invisibleTitlePaint
-                headingPaint -> invisibleHeadingPaint
-                subheadingPaint -> invisibleSubheadingPaint
-                bodyPaint -> invisibleBodyPaint
-                labelPaint -> invisibleLabelPaint
-                else -> {
-                    // For severity paints, find the matching invisible version
-                    severityPaints.entries.find { it.value === paint }?.let { 
-                        invisibleSeverityPaints[it.key] 
-                    } ?: createInvisiblePaint(paint)
-                }
-            }
+            // Use the paint mapping for efficient lookup
+            val invisiblePaint = paintMapping[paint] ?: createInvisiblePaint(paint)
             drawDualLayerText(text, paint, invisiblePaint, indent)
         }
 
@@ -235,12 +244,8 @@ class ReportGenerator(private val context: Context) {
          * Used for section headings that need special positioning without line wrapping.
          */
         fun drawHeading(text: String, visiblePaint: Paint, invisiblePaint: Paint? = null) {
-            val invisible = invisiblePaint ?: when (visiblePaint) {
-                titlePaint -> invisibleTitlePaint
-                headingPaint -> invisibleHeadingPaint
-                subheadingPaint -> invisibleSubheadingPaint
-                else -> createInvisiblePaint(visiblePaint)
-            }
+            // Use the paint mapping for efficient lookup
+            val invisible = invisiblePaint ?: paintMapping[visiblePaint] ?: createInvisiblePaint(visiblePaint)
             // Layer 1: Invisible semantic text
             canvas?.drawText(text, margin, yPosition, invisible)
             // Layer 2: Visible forensic text
@@ -535,7 +540,7 @@ class ReportGenerator(private val context: Context) {
         builder.appendLine()
         builder.appendLine("LAYER_METADATA:")
         builder.appendLine("SemanticLayer: INVISIBLE_TEXT_ALPHA=$invisibleTextAlpha")
-        builder.appendLine("ForensicLayer: VISIBLE_TEXT_ALPHA=255")
+        builder.appendLine("ForensicLayer: VISIBLE_TEXT_ALPHA=$visibleTextAlpha")
         builder.appendLine("LayerArchitecture: DUAL_LAYER")
         
         return builder.toString()
