@@ -249,9 +249,10 @@ class TimelineGenerator {
     ): TimelineResult {
         val rawEvents = generateTimeline(evidenceList, entities)
         
-        // Sort and deduplicate
+        // Sort and deduplicate using event ID and source evidence
+        // This avoids incorrectly merging different events with similar descriptions
         val sortedEvents = rawEvents.sortedBy { it.date }.distinctBy { 
-            "${it.date.time / 60000}-${it.eventType}-${it.description.take(50)}" 
+            "${it.id}-${it.sourceEvidenceId}" 
         }
         
         // Analyze gaps

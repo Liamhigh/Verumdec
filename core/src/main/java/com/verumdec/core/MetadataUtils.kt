@@ -258,6 +258,7 @@ object MetadataUtils {
     
     /**
      * Check if two names might refer to the same person.
+     * Uses word-level comparison to avoid false positives like "John" matching "Johnson".
      */
     fun namesMatch(name1: String, name2: String): Boolean {
         val n1 = normalizeName(name1)
@@ -266,15 +267,27 @@ object MetadataUtils {
         // Exact match
         if (n1 == n2) return true
         
-        // One contains the other
-        if (n1.contains(n2) || n2.contains(n1)) return true
+        // Split into words
+        val words1 = n1.split(" ").filter { it.isNotBlank() }.toSet()
+        val words2 = n2.split(" ").filter { it.isNotBlank() }.toSet()
         
-        // First names match
-        val parts1 = n1.split(" ")
-        val parts2 = n2.split(" ")
-        if (parts1.isNotEmpty() && parts2.isNotEmpty() && 
-            parts1.first() == parts2.first() && parts1.first().length > 2) {
-            return true
+        // Check if one set of words is a subset of the other (e.g., "John" and "John Smith")
+        if (words1.isNotEmpty() && words2.isNotEmpty()) {
+            if (words1.all { it in words2 } || words2.all { it in words1 }) {
+                return true
+            }
+        }
+        
+        // First and last names match (for "John Smith" vs "John D Smith")
+        if (words1.size >= 2 && words2.size >= 2) {
+            val first1 = words1.first()
+            val first2 = words2.first()
+            val last1 = n1.split(" ").last()
+            val last2 = n2.split(" ").last()
+            
+            if (first1 == first2 && last1 == last2) {
+                return true
+            }
         }
         
         return false

@@ -141,8 +141,17 @@ object HeaderFooterRenderer {
     }
     
     /**
-     * Generate QR code data pattern from hash.
-     * Returns a 2D array representing the QR-like pattern.
+     * Generate a decorative QR-like pattern from the document hash.
+     * 
+     * IMPORTANT: This creates a VISUAL pattern for branding/display purposes only.
+     * It is NOT a scannable QR code. The pattern provides a visual representation
+     * of the document's SHA-512 hash as a unique fingerprint, but cannot be scanned
+     * by QR code readers. The full hash value is displayed as text below the pattern
+     * for verification purposes.
+     * 
+     * @param hash The SHA-512 hash to visualize
+     * @param gridSize Size of the pattern grid (default 8x8)
+     * @return 2D boolean array where true = filled cell
      */
     fun generateQRPattern(hash: String, gridSize: Int = 8): Array<BooleanArray> {
         val pattern = Array(gridSize) { BooleanArray(gridSize) }
@@ -155,7 +164,7 @@ object HeaderFooterRenderer {
             }
         }
         
-        // Add corner markers (QR-style)
+        // Add corner markers (QR-style visual markers, not functional)
         // Top-left
         pattern[0][0] = true
         pattern[0][1] = true

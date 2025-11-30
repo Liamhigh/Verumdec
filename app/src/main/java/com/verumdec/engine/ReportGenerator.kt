@@ -6,7 +6,6 @@ import android.graphics.pdf.PdfDocument
 import com.verumdec.data.*
 import java.io.File
 import java.io.FileOutputStream
-import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -815,10 +814,9 @@ class ReportGenerator(private val context: Context) {
 
     /**
      * Calculate SHA-512 hash of content.
+     * Uses the shared HashUtils for consistency across the codebase.
      */
     private fun calculateSHA512(content: String): String {
-        val digest = MessageDigest.getInstance("SHA-512")
-        val hashBytes = digest.digest(content.toByteArray())
-        return hashBytes.joinToString("") { "%02x".format(it) }
+        return com.verumdec.core.HashUtils.sha512(content)
     }
 }
