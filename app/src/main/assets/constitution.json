@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "name": "Verum Omnis Constitutional Charter",
+  "description": "Foundational rules for the Verumdec contradiction engine to ensure fair and accurate analysis",
+  "rules": [
+    {
+      "id": "no_bias",
+      "name": "No Bias",
+      "description": "Analysis must not show bias toward any entity. All entities must be evaluated using the same criteria and thresholds.",
+      "severity": "CRITICAL",
+      "checkType": "BIAS_CHECK"
+    },
+    {
+      "id": "no_missing_admissions",
+      "name": "No Missing Admissions",
+      "description": "All admissions detected in evidence must be reported and cannot be skipped or omitted from the analysis.",
+      "severity": "CRITICAL",
+      "checkType": "ADMISSION_CHECK"
+    },
+    {
+      "id": "no_contradiction_skip",
+      "name": "No Contradiction Skip",
+      "description": "All detected contradictions must be included in the final report. Contradictions cannot be silently ignored.",
+      "severity": "CRITICAL",
+      "checkType": "CONTRADICTION_CHECK"
+    },
+    {
+      "id": "no_ambiguity_in_evidence",
+      "name": "No Ambiguity Allowed in Evidence",
+      "description": "Evidence must be clearly attributed and sourced. Ambiguous evidence without clear origin must be flagged.",
+      "severity": "HIGH",
+      "checkType": "AMBIGUITY_CHECK"
+    },
+    {
+      "id": "show_evidence_origins",
+      "name": "Must Show All Evidence Origins",
+      "description": "Every piece of evidence used in the analysis must have its origin clearly documented and traceable.",
+      "severity": "HIGH",
+      "checkType": "ORIGIN_CHECK"
+    },
+    {
+      "id": "show_hash_chain",
+      "name": "Must Show Hash Chain",
+      "description": "A cryptographic hash chain must be maintained for evidence integrity verification.",
+      "severity": "HIGH",
+      "checkType": "HASH_CHAIN_CHECK"
+    }
+  ],
+  "metadata": {
+    "createdAt": "2024-01-01T00:00:00Z",
+    "lastModified": "2024-01-01T00:00:00Z",
+    "author": "Verumdec System"
+  }
+}

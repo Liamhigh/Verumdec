@@ -21,6 +21,7 @@ class ContradictionEngine(private val context: Context) {
     private val liabilityCalculator = LiabilityCalculator()
     private val narrativeGenerator = NarrativeGenerator()
     private val reportGenerator = ReportGenerator(context)
+    private val constitutionBrain = ConstitutionBrain(context)
 
     /**
      * Analysis progress listener.
@@ -29,6 +30,7 @@ class ContradictionEngine(private val context: Context) {
         fun onProgressUpdate(stage: AnalysisStage, progress: Int, message: String)
         fun onComplete(case: Case)
         fun onError(error: String)
+        fun onConstitutionViolation(violations: List<ConstitutionViolation>) {}
     }
 
     enum class AnalysisStage {
@@ -39,6 +41,7 @@ class ContradictionEngine(private val context: Context) {
         ANALYZING_BEHAVIOR,
         CALCULATING_LIABILITY,
         GENERATING_NARRATIVE,
+        ENFORCING_CONSTITUTION,
         COMPLETE
     }
 
@@ -136,6 +139,39 @@ class ContradictionEngine(private val context: Context) {
                 "Narrative generated"
             )
 
+            // Stage 8: Enforce Constitution
+            listener.onProgressUpdate(AnalysisStage.ENFORCING_CONSTITUTION, 0, "Enforcing constitutional rules...")
+            
+            // Collect all statements from entities
+            val allStatements = currentCase.entities.flatMap { it.statements }
+            
+            val constitutionResult = ConstitutionBrain.enforceConstitution(
+                brain = constitutionBrain,
+                result = currentCase,
+                evidence = currentCase.evidence,
+                entities = currentCase.entities,
+                contradictions = currentCase.contradictions,
+                statements = allStatements
+            )
+            
+            // Add violations to case
+            currentCase = currentCase.copy(
+                constitutionViolations = constitutionResult.violations.toMutableList()
+            )
+            
+            if (constitutionResult.violations.isNotEmpty()) {
+                listener.onConstitutionViolation(constitutionResult.violations)
+            }
+            
+            listener.onProgressUpdate(
+                AnalysisStage.ENFORCING_CONSTITUTION, 
+                100, 
+                if (constitutionResult.isCompliant) 
+                    "Constitutional compliance verified" 
+                else 
+                    "Found ${constitutionResult.violations.size} constitutional violations"
+            )
+
             // Complete
             listener.onProgressUpdate(AnalysisStage.COMPLETE, 100, "Analysis complete!")
             listener.onComplete(currentCase)
@@ -183,6 +219,10 @@ class ContradictionEngine(private val context: Context) {
         val highestLiability = case.liabilityScores.maxByOrNull { it.value.overallScore }
         val highestLiabilityEntity = case.entities.find { it.id == highestLiability?.key }
         
+        val criticalViolations = case.constitutionViolations.count { 
+            it.severity == ConstitutionViolationSeverity.CRITICAL 
+        }
+        
         return CaseSummary(
             totalEvidence = case.evidence.size,
             processedEvidence = case.evidence.count { it.processed },
@@ -192,9 +232,16 @@ class ContradictionEngine(private val context: Context) {
             criticalContradictions = criticalContradictions,
             highContradictions = highContradictions,
             highestLiabilityEntity = highestLiabilityEntity?.primaryName,
-            highestLiabilityScore = highestLiability?.value?.overallScore ?: 0f
+            highestLiabilityScore = highestLiability?.value?.overallScore ?: 0f,
+            constitutionViolations = case.constitutionViolations.size,
+            criticalViolations = criticalViolations
         )
     }
+
+    /**
+     * Get the ConstitutionBrain instance.
+     */
+    fun getConstitutionBrain(): ConstitutionBrain = constitutionBrain
 }
 
 /**
@@ -209,5 +256,7 @@ data class CaseSummary(
     val criticalContradictions: Int,
     val highContradictions: Int,
     val highestLiabilityEntity: String?,
-    val highestLiabilityScore: Float
+    val highestLiabilityScore: Float,
+    val constitutionViolations: Int = 0,
+    val criticalViolations: Int = 0
 )
