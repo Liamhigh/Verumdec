@@ -3,6 +3,7 @@ package com.verumdec.engine
 import android.content.Context
 import android.net.Uri
 import com.verumdec.data.*
+import com.verumdec.core.constitution.ConstitutionBrain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -10,6 +11,7 @@ import java.io.File
 /**
  * Main Contradiction Engine
  * Orchestrates the full forensic analysis pipeline.
+ * Integrates ConstitutionBrain for rule enforcement.
  */
 class ContradictionEngine(private val context: Context) {
 
@@ -21,6 +23,10 @@ class ContradictionEngine(private val context: Context) {
     private val liabilityCalculator = LiabilityCalculator()
     private val narrativeGenerator = NarrativeGenerator()
     private val reportGenerator = ReportGenerator(context)
+    private val constitutionBrain = ConstitutionBrain(context)
+    
+    // Track constitution violations during analysis
+    private val constitutionViolations = mutableListOf<ConstitutionViolation>()
 
     /**
      * Analysis progress listener.
@@ -39,6 +45,7 @@ class ContradictionEngine(private val context: Context) {
         ANALYZING_BEHAVIOR,
         CALCULATING_LIABILITY,
         GENERATING_NARRATIVE,
+        ENFORCING_CONSTITUTION,
         COMPLETE
     }
 
@@ -52,6 +59,7 @@ class ContradictionEngine(private val context: Context) {
     ): Case = withContext(Dispatchers.IO) {
         try {
             var currentCase = case
+            constitutionViolations.clear()
 
             // Stage 1: Process Evidence
             listener.onProgressUpdate(AnalysisStage.PROCESSING_EVIDENCE, 0, "Processing evidence files...")
@@ -136,6 +144,15 @@ class ContradictionEngine(private val context: Context) {
                 "Narrative generated"
             )
 
+            // Stage 8: Enforce Constitution Rules
+            listener.onProgressUpdate(AnalysisStage.ENFORCING_CONSTITUTION, 0, "Enforcing constitution rules...")
+            enforceConstitution(currentCase)
+            listener.onProgressUpdate(
+                AnalysisStage.ENFORCING_CONSTITUTION, 
+                100, 
+                "Constitution check complete: ${constitutionViolations.size} violations found"
+            )
+
             // Complete
             listener.onProgressUpdate(AnalysisStage.COMPLETE, 100, "Analysis complete!")
             listener.onComplete(currentCase)
@@ -145,6 +162,45 @@ class ContradictionEngine(private val context: Context) {
             listener.onError(e.message ?: "Unknown error occurred")
             throw e
         }
+    }
+
+    /**
+     * Enforce constitution rules on the case.
+     */
+    private fun enforceConstitution(case: Case) {
+        constitutionViolations.clear()
+        
+        // Check evidence handling
+        for (evidence in case.evidence) {
+            val violations = constitutionBrain.checkEvidenceHandling(evidence.id, evidence.type.name)
+            constitutionViolations.addAll(violations)
+        }
+        
+        // Check analysis operations
+        for (contradiction in case.contradictions) {
+            val violations = constitutionBrain.checkAnalysisOperation(
+                "CONTRADICTION_DETECTION",
+                contradiction.entityId,
+                mapOf(
+                    "severity" to contradiction.severity.name,
+                    "type" to contradiction.type.name
+                )
+            )
+            constitutionViolations.addAll(violations)
+        }
+        
+        // Check liability scoring
+        for ((entityId, score) in case.liabilityScores) {
+            val violations = constitutionBrain.checkLiabilityScoring(entityId, score.overallScore)
+            constitutionViolations.addAll(violations)
+        }
+    }
+
+    /**
+     * Get constitution violations from last analysis.
+     */
+    fun getConstitutionViolations(): List<ConstitutionViolation> {
+        return constitutionViolations.toList()
     }
 
     /**
@@ -192,7 +248,8 @@ class ContradictionEngine(private val context: Context) {
             criticalContradictions = criticalContradictions,
             highContradictions = highContradictions,
             highestLiabilityEntity = highestLiabilityEntity?.primaryName,
-            highestLiabilityScore = highestLiability?.value?.overallScore ?: 0f
+            highestLiabilityScore = highestLiability?.value?.overallScore ?: 0f,
+            constitutionViolations = constitutionViolations.size
         )
     }
 }
@@ -209,5 +266,17 @@ data class CaseSummary(
     val criticalContradictions: Int,
     val highContradictions: Int,
     val highestLiabilityEntity: String?,
-    val highestLiabilityScore: Float
+    val highestLiabilityScore: Float,
+    val constitutionViolations: Int = 0
+)
+
+/**
+ * Represents a constitution violation.
+ */
+data class ConstitutionViolation(
+    val ruleId: String,
+    val ruleName: String,
+    val description: String,
+    val severity: String,
+    val context: String
 )

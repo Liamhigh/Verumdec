@@ -257,6 +257,109 @@ class ConstitutionBrain(private val context: Context) {
      * Get all principles.
      */
     fun getPrinciples(): List<Principle> = constitution?.principles ?: emptyList()
+
+    /**
+     * Check evidence handling for constitution compliance.
+     */
+    fun checkEvidenceHandling(evidenceId: String, evidenceType: String): List<com.verumdec.engine.ConstitutionViolation> {
+        if (!isLoaded) loadConstitution()
+        
+        val result = mutableListOf<com.verumdec.engine.ConstitutionViolation>()
+        
+        // Check required fields based on evidence type
+        val metadata = mapOf(
+            "evidenceId" to evidenceId,
+            "evidenceType" to evidenceType,
+            "timestamp" to System.currentTimeMillis()
+        )
+        
+        constitution?.rules?.forEach { rule ->
+            val check = validateRule(rule, "EVIDENCE_HANDLING", metadata)
+            if (!check.passed) {
+                result.add(com.verumdec.engine.ConstitutionViolation(
+                    ruleId = rule.id,
+                    ruleName = rule.name,
+                    description = check.message,
+                    severity = "WARNING",
+                    context = "Evidence: $evidenceId ($evidenceType)"
+                ))
+            }
+        }
+        
+        return result
+    }
+
+    /**
+     * Check analysis operation for constitution compliance.
+     */
+    fun checkAnalysisOperation(operationType: String, entityId: String, data: Map<String, String>): List<com.verumdec.engine.ConstitutionViolation> {
+        if (!isLoaded) loadConstitution()
+        
+        val result = mutableListOf<com.verumdec.engine.ConstitutionViolation>()
+        
+        val metadata = mapOf<String, Any>(
+            "entityId" to entityId,
+            "operationType" to operationType,
+            "timestamp" to System.currentTimeMillis()
+        ) + data
+        
+        constitution?.rules?.forEach { rule ->
+            val check = validateRule(rule, operationType, metadata)
+            if (!check.passed) {
+                result.add(com.verumdec.engine.ConstitutionViolation(
+                    ruleId = rule.id,
+                    ruleName = rule.name,
+                    description = check.message,
+                    severity = "WARNING",
+                    context = "Operation: $operationType, Entity: $entityId"
+                ))
+            }
+        }
+        
+        return result
+    }
+
+    /**
+     * Check liability scoring for constitution compliance.
+     */
+    fun checkLiabilityScoring(entityId: String, score: Float): List<com.verumdec.engine.ConstitutionViolation> {
+        if (!isLoaded) loadConstitution()
+        
+        val result = mutableListOf<com.verumdec.engine.ConstitutionViolation>()
+        
+        // Validate score is within valid range
+        if (score < 0f || score > 100f) {
+            result.add(com.verumdec.engine.ConstitutionViolation(
+                ruleId = "R3",
+                ruleName = "Score Range Validation",
+                description = "Liability score $score is outside valid range [0-100]",
+                severity = "ERROR",
+                context = "Entity: $entityId, Score: $score"
+            ))
+        }
+        
+        // Check for equal treatment principle
+        val metadata = mapOf<String, Any>(
+            "entityId" to entityId,
+            "score" to score,
+            "timestamp" to System.currentTimeMillis()
+        )
+        
+        constitution?.rules?.filter { it.validationPattern == "EQUAL_ANALYSIS" }?.forEach { rule ->
+            val check = validateRule(rule, "LIABILITY_SCORING", metadata)
+            if (!check.passed) {
+                result.add(com.verumdec.engine.ConstitutionViolation(
+                    ruleId = rule.id,
+                    ruleName = rule.name,
+                    description = check.message,
+                    severity = "WARNING",
+                    context = "Liability scoring for entity: $entityId"
+                ))
+            }
+        }
+        
+        return result
+    }
 }
 
 // Data classes for constitution structure

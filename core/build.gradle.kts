@@ -47,6 +47,9 @@ android {
 dependencies {
     // Core Android - minimal dependencies for library module
     implementation("androidx.core:core-ktx:1.12.0")
+    
+    // JSON parsing for constitution
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
