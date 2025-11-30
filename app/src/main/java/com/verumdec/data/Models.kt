@@ -31,7 +31,10 @@ data class Evidence(
     val addedAt: Date = Date(),
     val extractedText: String = "",
     val metadata: EvidenceMetadata = EvidenceMetadata(),
-    val processed: Boolean = false
+    val processed: Boolean = false,
+    val sha512Hash: String = "",
+    val originUri: String = "",
+    val processedAt: Date? = null
 )
 
 enum class EvidenceType {
@@ -40,6 +43,8 @@ enum class EvidenceType {
     TEXT,
     EMAIL,
     WHATSAPP,
+    AUDIO,
+    VIDEO,
     UNKNOWN
 }
 
@@ -53,7 +58,17 @@ data class EvidenceMetadata(
     val sender: String? = null,
     val receiver: String? = null,
     val subject: String? = null,
-    val exifData: Map<String, String> = emptyMap()
+    val cc: String? = null,
+    val exifData: Map<String, String> = emptyMap(),
+    val pageCount: Int = 0,
+    val width: Int = 0,
+    val height: Int = 0,
+    val charCount: Int = 0,
+    val wordCount: Int = 0,
+    val messageCount: Int = 0,
+    val participants: String = "",
+    val durationSeconds: Long = 0,
+    val fileSize: Long = 0
 )
 
 /**

@@ -1,0 +1,289 @@
+package com.verumdec.report.builder
+
+import android.content.Context
+import android.graphics.*
+import android.graphics.pdf.PdfDocument
+import com.verumdec.report.renderer.HeaderFooterRenderer
+import com.verumdec.report.renderer.WatermarkRenderer
+import com.verumdec.report.generator.QRCodeGenerator
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
+
+/**
+ * PDFBuilder - Builds sealed PDF reports with Verum Omnis branding.
+ * Implements the PDF Sealing Engine with:
+ * - Top-center Verum Omnis 3D logo
+ * - Central faint watermark (12–16% opacity)
+ * - Bottom-right QR code containing truncated SHA-512
+ * - Footer with "✔ Patent Pending Verum Omnis"
+ * - Full multi-page support
+ * - Automatic page count, timestamps, case ID
+ */
+class PDFBuilder(private val context: Context) {
+
+    companion object {
+        const val PAGE_WIDTH = 595  // A4 width in points
+        const val PAGE_HEIGHT = 842 // A4 height in points
+        const val MARGIN = 50f
+        const val LINE_HEIGHT = 14f
+        const val HEADER_HEIGHT = 80f
+        const val FOOTER_HEIGHT = 60f
+    }
+
+    private val headerFooterRenderer = HeaderFooterRenderer()
+    private val watermarkRenderer = WatermarkRenderer()
+    private val qrCodeGenerator = QRCodeGenerator()
+
+    private val dateFormat = SimpleDateFormat("dd MMMM yyyy HH:mm:ss", Locale.US)
+
+    /**
+     * Build a sealed PDF report.
+     */
+    fun buildReport(config: ReportConfig): File {
+        val pdfDocument = PdfDocument()
+        val pages = mutableListOf<PdfDocument.Page>()
+        
+        var pageNumber = 1
+        var currentPage: PdfDocument.Page? = null
+        var canvas: Canvas? = null
+        var yPosition = MARGIN + HEADER_HEIGHT
+
+        val contentArea = PAGE_HEIGHT - MARGIN - FOOTER_HEIGHT
+
+        // Create paints
+        val paints = createPaints()
+
+        fun startNewPage(): Canvas {
+            currentPage?.let { 
+                // Add watermark before finishing page
+                watermarkRenderer.renderWatermark(it.canvas, PAGE_WIDTH, PAGE_HEIGHT)
+                pdfDocument.finishPage(it) 
+            }
+            
+            val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create()
+            currentPage = pdfDocument.startPage(pageInfo)
+            val newCanvas = currentPage!!.canvas
+            pages.add(currentPage!!)
+            
+            // Render header with logo
+            headerFooterRenderer.renderHeader(
+                newCanvas, 
+                PAGE_WIDTH.toFloat(), 
+                config.caseName,
+                config.caseId
+            )
+            
+            // Render footer with QR code
+            headerFooterRenderer.renderFooter(
+                newCanvas,
+                PAGE_WIDTH.toFloat(),
+                PAGE_HEIGHT.toFloat(),
+                pageNumber,
+                config.totalPages,
+                config.sha512Hash,
+                config.generatedAt,
+                qrCodeGenerator
+            )
+            
+            yPosition = MARGIN + HEADER_HEIGHT
+            pageNumber++
+            
+            return newCanvas
+        }
+
+        fun checkPageBreak(requiredSpace: Float = LINE_HEIGHT * 3) {
+            if (yPosition + requiredSpace > contentArea) {
+                canvas = startNewPage()
+            }
+        }
+
+        fun drawText(text: String, paint: Paint, indent: Float = 0f) {
+            val maxWidth = PAGE_WIDTH - 2 * MARGIN - indent
+            val words = text.split(" ")
+            var currentLine = ""
+            
+            for (word in words) {
+                val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
+                val testWidth = paint.measureText(testLine)
+                
+                if (testWidth <= maxWidth) {
+                    currentLine = testLine
+                } else {
+                    checkPageBreak()
+                    canvas?.drawText(currentLine, MARGIN + indent, yPosition, paint)
+                    yPosition += LINE_HEIGHT
+                    currentLine = word
+                }
+            }
+            
+            if (currentLine.isNotEmpty()) {
+                checkPageBreak()
+                canvas?.drawText(currentLine, MARGIN + indent, yPosition, paint)
+                yPosition += LINE_HEIGHT
+            }
+        }
+
+        fun addSpace(lines: Float = 1f) {
+            yPosition += LINE_HEIGHT * lines
+        }
+
+        // Calculate total pages first (estimate)
+        val estimatedPages = estimatePageCount(config)
+        val updatedConfig = config.copy(totalPages = estimatedPages)
+
+        // Start first page
+        canvas = startNewPage()
+
+        // Title Section
+        addSpace(2f)
+        canvas?.drawText("FORENSIC ANALYSIS REPORT", MARGIN, yPosition, paints.title)
+        yPosition += 30f
+        
+        canvas?.drawText("Generated by Verum Omnis Contradiction Engine", MARGIN, yPosition, paints.subheading)
+        addSpace(2f)
+        
+        drawText("Case: ${updatedConfig.caseName}", paints.body)
+        drawText("Case ID: ${updatedConfig.caseId}", paints.label)
+        drawText("Generated: ${dateFormat.format(updatedConfig.generatedAt)}", paints.body)
+        addSpace(2f)
+
+        // Sealed indicator
+        canvas?.drawText("SEALED DOCUMENT", MARGIN, yPosition, paints.sealed)
+        addSpace()
+        drawText("SHA-512: ${updatedConfig.sha512Hash.take(64)}...", paints.label)
+        addSpace(3f)
+
+        // Content sections
+        for (section in updatedConfig.sections) {
+            checkPageBreak(LINE_HEIGHT * 5)
+            
+            canvas?.drawText(section.title, MARGIN, yPosition, paints.heading)
+            addSpace(1.5f)
+            
+            for (paragraph in section.paragraphs) {
+                drawText(paragraph, paints.body)
+                addSpace(0.5f)
+            }
+            
+            for (item in section.bulletPoints) {
+                checkPageBreak()
+                drawText("• $item", paints.body, 10f)
+            }
+            
+            addSpace(2f)
+        }
+
+        // Conclusion section
+        checkPageBreak(LINE_HEIGHT * 10)
+        addSpace(2f)
+        canvas?.drawText("DOCUMENT SEAL", MARGIN, yPosition, paints.sealed)
+        addSpace()
+        drawText("This document has been cryptographically sealed with SHA-512.", paints.body)
+        addSpace()
+        drawText("Hash: ${updatedConfig.sha512Hash}", paints.label)
+        addSpace(2f)
+        drawText("✔ Patent Pending • Verum Omnis", paints.label)
+        drawText("Generated: ${dateFormat.format(updatedConfig.generatedAt)}", paints.label)
+
+        // Finish last page with watermark
+        currentPage?.let { 
+            watermarkRenderer.renderWatermark(it.canvas, PAGE_WIDTH, PAGE_HEIGHT)
+            pdfDocument.finishPage(it) 
+        }
+
+        // Save PDF
+        val reportsDir = File(context.getExternalFilesDir(null), "reports")
+        reportsDir.mkdirs()
+        
+        val fileName = "Verum_Omnis_Report_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.pdf"
+        val file = File(reportsDir, fileName)
+        
+        FileOutputStream(file).use { outputStream ->
+            pdfDocument.writeTo(outputStream)
+        }
+        
+        pdfDocument.close()
+        
+        return file
+    }
+
+    private fun estimatePageCount(config: ReportConfig): Int {
+        var lines = 20 // Title and header content
+        
+        for (section in config.sections) {
+            lines += 5 // Section header and spacing
+            lines += section.paragraphs.sumOf { it.length / 80 + 1 }
+            lines += section.bulletPoints.size
+        }
+        
+        lines += 15 // Footer content
+        
+        val linesPerPage = ((PAGE_HEIGHT - MARGIN - HEADER_HEIGHT - FOOTER_HEIGHT) / LINE_HEIGHT).toInt()
+        return (lines / linesPerPage) + 1
+    }
+
+    private fun createPaints(): ReportPaints {
+        return ReportPaints(
+            title = Paint().apply {
+                textSize = 24f
+                color = Color.parseColor("#1A237E")
+                isFakeBoldText = true
+                isAntiAlias = true
+            },
+            heading = Paint().apply {
+                textSize = 16f
+                color = Color.parseColor("#1A237E")
+                isFakeBoldText = true
+                isAntiAlias = true
+            },
+            subheading = Paint().apply {
+                textSize = 14f
+                color = Color.parseColor("#3949AB")
+                isFakeBoldText = true
+                isAntiAlias = true
+            },
+            body = Paint().apply {
+                textSize = 10f
+                color = Color.BLACK
+                isAntiAlias = true
+            },
+            label = Paint().apply {
+                textSize = 9f
+                color = Color.GRAY
+                isAntiAlias = true
+            },
+            sealed = Paint().apply {
+                textSize = 12f
+                color = Color.parseColor("#D32F2F")
+                isFakeBoldText = true
+                isAntiAlias = true
+            }
+        )
+    }
+}
+
+data class ReportPaints(
+    val title: Paint,
+    val heading: Paint,
+    val subheading: Paint,
+    val body: Paint,
+    val label: Paint,
+    val sealed: Paint
+)
+
+data class ReportConfig(
+    val caseName: String,
+    val caseId: String,
+    val sha512Hash: String,
+    val generatedAt: Date = Date(),
+    val totalPages: Int = 1,
+    val sections: List<ReportSection> = emptyList()
+)
+
+data class ReportSection(
+    val title: String,
+    val paragraphs: List<String> = emptyList(),
+    val bulletPoints: List<String> = emptyList()
+)

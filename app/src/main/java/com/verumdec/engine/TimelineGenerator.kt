@@ -3,10 +3,12 @@ package com.verumdec.engine
 import com.verumdec.data.*
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * Timeline Generator
  * Builds chronological timelines from evidence.
+ * Implements clustering, gap analysis, and pattern detection.
  */
 class TimelineGenerator {
 
@@ -47,6 +49,180 @@ class TimelineGenerator {
         }
         
         return events.sortedBy { it.date }
+    }
+
+    /**
+     * Cluster events by temporal proximity.
+     * Groups events that occur within the same time window.
+     */
+    fun clusterEvents(events: List<TimelineEvent>, windowHours: Int = 24): List<EventCluster> {
+        if (events.isEmpty()) return emptyList()
+        
+        val clusters = mutableListOf<EventCluster>()
+        val sorted = events.sortedBy { it.date }
+        var currentCluster = mutableListOf<TimelineEvent>()
+        val windowMs = TimeUnit.HOURS.toMillis(windowHours.toLong())
+        
+        for (event in sorted) {
+            if (currentCluster.isEmpty()) {
+                currentCluster.add(event)
+            } else {
+                val lastEvent = currentCluster.last()
+                val timeDiff = event.date.time - lastEvent.date.time
+                
+                if (timeDiff <= windowMs) {
+                    currentCluster.add(event)
+                } else {
+                    clusters.add(createCluster(currentCluster))
+                    currentCluster = mutableListOf(event)
+                }
+            }
+        }
+        
+        if (currentCluster.isNotEmpty()) {
+            clusters.add(createCluster(currentCluster))
+        }
+        
+        return clusters
+    }
+
+    /**
+     * Analyze gaps in the timeline.
+     * Identifies unusual periods of silence or missing activity.
+     */
+    fun analyzeGaps(events: List<TimelineEvent>): List<TimelineGap> {
+        if (events.size < 2) return emptyList()
+        
+        val gaps = mutableListOf<TimelineGap>()
+        val sorted = events.sortedBy { it.date }
+        
+        // Calculate average gap to determine what's unusual
+        val allGapMs = mutableListOf<Long>()
+        for (i in 1 until sorted.size) {
+            allGapMs.add(sorted[i].date.time - sorted[i - 1].date.time)
+        }
+        
+        val avgGapMs = if (allGapMs.isNotEmpty()) allGapMs.average() else 0.0
+        val unusualThreshold = avgGapMs * 3 // 3x average is unusual
+        
+        for (i in 1 until sorted.size) {
+            val gapMs = sorted[i].date.time - sorted[i - 1].date.time
+            val gapDays = TimeUnit.MILLISECONDS.toDays(gapMs).toInt()
+            
+            if (gapDays >= 1) {
+                val isUnusual = gapMs > unusualThreshold
+                val precedingEvent = sorted[i - 1]
+                val followingEvent = sorted[i]
+                
+                gaps.add(TimelineGap(
+                    startDate = precedingEvent.date,
+                    endDate = followingEvent.date,
+                    durationDays = gapDays,
+                    isUnusual = isUnusual,
+                    precedingEventType = precedingEvent.eventType,
+                    followingEventType = followingEvent.eventType,
+                    involvedEntityIds = (precedingEvent.entityIds + followingEvent.entityIds).distinct()
+                ))
+            }
+        }
+        
+        return gaps.filter { it.isUnusual || it.durationDays >= 7 }
+    }
+
+    /**
+     * Detect patterns in timeline (weekly, monthly, etc.)
+     */
+    fun detectPatterns(events: List<TimelineEvent>): List<TimelinePattern> {
+        val patterns = mutableListOf<TimelinePattern>()
+        
+        // Group by day of week
+        val byDayOfWeek = events.groupBy { event ->
+            val calendar = Calendar.getInstance()
+            calendar.time = event.date
+            calendar.get(Calendar.DAY_OF_WEEK)
+        }
+        
+        // Find recurring patterns
+        for ((day, dayEvents) in byDayOfWeek) {
+            if (dayEvents.size >= 3) {
+                val dayName = getDayName(day)
+                patterns.add(TimelinePattern(
+                    patternType = PatternType.WEEKLY,
+                    description = "Activity peak on $dayName",
+                    frequency = dayEvents.size,
+                    confidence = calculatePatternConfidence(dayEvents.size, events.size)
+                ))
+            }
+        }
+        
+        // Check for monthly patterns
+        val byDayOfMonth = events.groupBy { event ->
+            val calendar = Calendar.getInstance()
+            calendar.time = event.date
+            calendar.get(Calendar.DAY_OF_MONTH)
+        }
+        
+        for ((day, dayEvents) in byDayOfMonth) {
+            if (dayEvents.size >= 3 && day <= 28) {
+                patterns.add(TimelinePattern(
+                    patternType = PatternType.MONTHLY,
+                    description = "Recurring activity on day $day of month",
+                    frequency = dayEvents.size,
+                    confidence = calculatePatternConfidence(dayEvents.size, events.size)
+                ))
+            }
+        }
+        
+        return patterns.sortedByDescending { it.confidence }
+    }
+
+    /**
+     * Get timeline summary statistics.
+     */
+    fun getTimelineSummary(events: List<TimelineEvent>): TimelineSummary {
+        if (events.isEmpty()) {
+            return TimelineSummary(
+                totalEvents = 0,
+                startDate = null,
+                endDate = null,
+                durationDays = 0,
+                eventsByType = emptyMap(),
+                averageEventsPerDay = 0f,
+                peakActivityDate = null,
+                peakActivityCount = 0
+            )
+        }
+        
+        val sorted = events.sortedBy { it.date }
+        val startDate = sorted.first().date
+        val endDate = sorted.last().date
+        val durationDays = TimeUnit.MILLISECONDS.toDays(endDate.time - startDate.time).toInt() + 1
+        
+        val eventsByType = events.groupBy { it.eventType }.mapValues { it.value.size }
+        val averageEventsPerDay = if (durationDays > 0) events.size.toFloat() / durationDays else events.size.toFloat()
+        
+        // Find peak activity date
+        val byDate = events.groupBy { event ->
+            val calendar = Calendar.getInstance()
+            calendar.time = event.date
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            calendar.time
+        }
+        val peakEntry = byDate.maxByOrNull { it.value.size }
+        
+        return TimelineSummary(
+            totalEvents = events.size,
+            startDate = startDate,
+            endDate = endDate,
+            durationDays = durationDays,
+            eventsByType = eventsByType,
+            averageEventsPerDay = averageEventsPerDay,
+            peakActivityDate = peakEntry?.key,
+            peakActivityCount = peakEntry?.value?.size ?: 0
+        )
     }
 
     /**
@@ -92,7 +268,6 @@ class TimelineGenerator {
         val subject = evidence.metadata.subject ?: ""
         val entityIds = findMatchingEntities(sender, entities)
         
-        // Main email event
         events.add(TimelineEvent(
             date = date,
             description = "Email from $sender: $subject",
@@ -102,7 +277,6 @@ class TimelineGenerator {
             significance = Significance.NORMAL
         ))
         
-        // Extract dated events from body
         events.addAll(extractDatedEvents(evidence.extractedText, evidence.id, entities))
         
         return events
@@ -114,7 +288,6 @@ class TimelineGenerator {
     private fun parseGenericEvents(evidence: Evidence, entities: List<Entity>): List<TimelineEvent> {
         val events = mutableListOf<TimelineEvent>()
         
-        // Add document creation event
         evidence.metadata.creationDate?.let { date ->
             events.add(TimelineEvent(
                 date = date,
@@ -126,7 +299,6 @@ class TimelineGenerator {
             ))
         }
         
-        // Extract dated events from text
         events.addAll(extractDatedEvents(evidence.extractedText, evidence.id, entities))
         
         return events
@@ -166,9 +338,30 @@ class TimelineGenerator {
         return events
     }
 
-    /**
-     * Classify a message/sentence by type.
-     */
+    private fun createCluster(events: List<TimelineEvent>): EventCluster {
+        val sortedEvents = events.sortedBy { it.date }
+        val allEntityIds = events.flatMap { it.entityIds }.distinct()
+        val eventTypes = events.map { it.eventType }.distinct()
+        
+        val significance = when {
+            events.any { it.significance == Significance.CRITICAL } -> ClusterSignificance.CRITICAL
+            events.count { it.significance == Significance.HIGH } >= 2 -> ClusterSignificance.HIGH
+            events.size >= 5 -> ClusterSignificance.MEDIUM
+            else -> ClusterSignificance.LOW
+        }
+        
+        return EventCluster(
+            id = UUID.randomUUID().toString(),
+            startDate = sortedEvents.first().date,
+            endDate = sortedEvents.last().date,
+            eventCount = events.size,
+            events = sortedEvents,
+            involvedEntityIds = allEntityIds,
+            eventTypes = eventTypes,
+            significance = significance
+        )
+    }
+
     private fun classifyMessage(text: String): EventType {
         val lowerText = text.lowercase()
         
@@ -181,9 +374,6 @@ class TimelineGenerator {
         }
     }
 
-    /**
-     * Determine significance based on content.
-     */
     private fun determineSignificance(text: String, eventType: EventType): Significance {
         return when (eventType) {
             EventType.CONTRADICTION -> Significance.CRITICAL
@@ -195,9 +385,6 @@ class TimelineGenerator {
         }
     }
 
-    /**
-     * Find entities matching a name.
-     */
     private fun findMatchingEntities(name: String, entities: List<Entity>): List<String> {
         return entities.filter { entity ->
             entity.primaryName.equals(name, ignoreCase = true) ||
@@ -207,9 +394,6 @@ class TimelineGenerator {
         }.map { it.id }
     }
 
-    /**
-     * Parse WhatsApp date format.
-     */
     private fun parseWhatsAppDate(dateStr: String): Date? {
         val formats = listOf(
             "d/M/yy, h:mm a",
@@ -227,9 +411,6 @@ class TimelineGenerator {
         return null
     }
 
-    /**
-     * Parse date with specific format.
-     */
     private fun parseDate(dateStr: String, format: String): Date? {
         return try {
             SimpleDateFormat(format, Locale.US).parse(dateStr.trim())
@@ -237,4 +418,71 @@ class TimelineGenerator {
             null
         }
     }
+
+    private fun getDayName(dayOfWeek: Int): String {
+        return when (dayOfWeek) {
+            Calendar.SUNDAY -> "Sunday"
+            Calendar.MONDAY -> "Monday"
+            Calendar.TUESDAY -> "Tuesday"
+            Calendar.WEDNESDAY -> "Wednesday"
+            Calendar.THURSDAY -> "Thursday"
+            Calendar.FRIDAY -> "Friday"
+            Calendar.SATURDAY -> "Saturday"
+            else -> "Unknown"
+        }
+    }
+
+    private fun calculatePatternConfidence(patternCount: Int, totalEvents: Int): Float {
+        if (totalEvents == 0) return 0f
+        return (patternCount.toFloat() / totalEvents).coerceAtMost(1f)
+    }
 }
+
+// Data classes for timeline analysis
+
+data class EventCluster(
+    val id: String,
+    val startDate: Date,
+    val endDate: Date,
+    val eventCount: Int,
+    val events: List<TimelineEvent>,
+    val involvedEntityIds: List<String>,
+    val eventTypes: List<EventType>,
+    val significance: ClusterSignificance
+)
+
+enum class ClusterSignificance {
+    LOW, MEDIUM, HIGH, CRITICAL
+}
+
+data class TimelineGap(
+    val startDate: Date,
+    val endDate: Date,
+    val durationDays: Int,
+    val isUnusual: Boolean,
+    val precedingEventType: EventType,
+    val followingEventType: EventType,
+    val involvedEntityIds: List<String>
+)
+
+data class TimelinePattern(
+    val patternType: PatternType,
+    val description: String,
+    val frequency: Int,
+    val confidence: Float
+)
+
+enum class PatternType {
+    WEEKLY, MONTHLY, SEASONAL, IRREGULAR
+}
+
+data class TimelineSummary(
+    val totalEvents: Int,
+    val startDate: Date?,
+    val endDate: Date?,
+    val durationDays: Int,
+    val eventsByType: Map<EventType, Int>,
+    val averageEventsPerDay: Float,
+    val peakActivityDate: Date?,
+    val peakActivityCount: Int
+)
