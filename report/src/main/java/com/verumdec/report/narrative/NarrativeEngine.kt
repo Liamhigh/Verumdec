@@ -276,8 +276,9 @@ class NarrativeEngine {
                         appendLine()
                         append("    ⚠️ CONTRADICTION DETECTED (Severity: ${contradiction.severity}/10): ")
                         appendLine(formatContradictionForNarrative(contradiction))
-                        if (contradiction.legalTrigger != null) {
-                            appendLine("    📋 Legal Implication: ${getLegalImplicationText(contradiction.legalTrigger)}")
+                        val legalTrigger = contradiction.legalTrigger
+                        if (legalTrigger != null) {
+                            appendLine("    📋 Legal Implication: ${getLegalImplicationText(legalTrigger)}")
                         }
                         appendLine()
                     }
@@ -376,8 +377,9 @@ class NarrativeEngine {
                 appendLine("• ${contradiction.description}")
                 appendLine("  Source: ${contradiction.sourceDocument}")
                 appendLine("  Severity: ${contradiction.severity}/10")
-                if (contradiction.legalTrigger != null) {
-                    appendLine("  Legal implication: ${getLegalImplicationText(contradiction.legalTrigger)}")
+                val legalTrigger = contradiction.legalTrigger
+                if (legalTrigger != null) {
+                    appendLine("  Legal implication: ${getLegalImplicationText(legalTrigger)}")
                 }
                 appendLine()
             }
