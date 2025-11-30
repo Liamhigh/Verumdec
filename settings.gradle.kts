@@ -19,26 +19,16 @@ rootProject.name = "Verumdec"
 // Main application module
 include(":app")
 
-// Core module - Generic logic & data models shared across all modules
-include(":core")
-
-// OCR module - OCR utilities and Tesseract integration for text extraction from images
-include(":ocr")
-
-// PDF module - PDF processing, parsing, and metadata extraction
-include(":pdf")
-
-// Entity module - Entity and claim extraction from processed documents
-include(":entity")
-
-// Timeline module - Event chronologization and timeline generation
-include(":timeline")
-
-// Analysis module - Contradiction detection and behavioral analysis engine
-include(":analysis")
-
-// Report module - PDF report generation and cryptographic sealing
-include(":report")
-
-// UI module - Presentation layer, layouts, and reusable UI components
-include(":ui")
+// NOTE: Library modules (core, ocr, pdf, entity, timeline, analysis, report, ui) are currently
+// placeholders. All implementations are in the :app module.
+// To do: Refactor to move implementations to their respective modules.
+// 
+// Future module structure:
+// include(":core")    // Generic logic & data models shared across all modules
+// include(":ocr")     // OCR utilities and text extraction from images
+// include(":pdf")     // PDF processing, parsing, and metadata extraction
+// include(":entity")  // Entity and claim extraction from processed documents
+// include(":timeline")// Event chronologization and timeline generation
+// include(":analysis")// Contradiction detection and behavioral analysis engine
+// include(":report")  // PDF report generation and cryptographic sealing
+// include(":ui")      // Presentation layer, layouts, and reusable UI components
