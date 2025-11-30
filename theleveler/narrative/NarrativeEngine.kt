@@ -1,6 +1,7 @@
 package ai.verum.theleveler.narrative
 
 import ai.verum.theleveler.core.*
+import ai.verum.theleveler.entity.EntityProfile
 import ai.verum.theleveler.entity.EntityProfiler
 import ai.verum.theleveler.timeline.TimelineBuilder
 
@@ -17,7 +18,7 @@ object NarrativeEngine {
         statements: List<Statement>,
         timelineEvents: List<TimelineEvent>,
         report: ContradictionReport,
-        profiles: Map<String, EntityProfiler.EntityProfile>
+        profiles: Map<String, EntityProfile>
     ): Narrative {
         val sections = mutableListOf<NarrativeSection>()
         
@@ -54,11 +55,17 @@ object NarrativeEngine {
         statements: List<Statement>,
         report: ContradictionReport
     ): NarrativeSection {
-        val actors = statements.map { it.actor.rawName }.distinct()
+        val actors = statements.map { it.actor.displayName }.distinct()
         
         val content = buildString {
-            appendLine("FORENSIC ANALYSIS SUMMARY")
+            appendLine("FORENSIC NARRATIVE REPORT")
             appendLine("=" .repeat(40))
+            appendLine()
+            appendLine("SUMMARY")
+            appendLine("--------")
+            appendLine("This document reconstructs the full sequence of events,")
+            appendLine("identifies contradictions between statements,")
+            appendLine("and highlights behavioural or linguistic changes.")
             appendLine()
             appendLine("This analysis reviewed ${statements.size} statements from ${actors.size} parties.")
             appendLine()
@@ -88,26 +95,27 @@ object NarrativeEngine {
      * Generate parties section.
      */
     private fun generatePartiesSection(
-        profiles: Map<String, EntityProfiler.EntityProfile>
+        profiles: Map<String, EntityProfile>
     ): NarrativeSection {
         val content = buildString {
             appendLine("PARTIES INVOLVED")
-            appendLine("=" .repeat(40))
-            appendLine()
+            appendLine("----------------")
             
             for ((_, profile) in profiles) {
-                appendLine("${profile.actor.rawName}")
-                appendLine("-".repeat(profile.actor.rawName.length))
-                appendLine("Statements on record: ${profile.statementCount}")
-                appendLine("Communication style: ${profile.communicationStyle.name.lowercase().replace("_", " ")}")
-                appendLine("Average certainty: ${String.format("%.0f", profile.averageCertainty * 100)}%")
+                appendLine("- ${profile.actor.displayName}:")
+                appendLine("  Statements: ${profile.statementCount}")
                 
                 if (profile.themes.isNotEmpty()) {
-                    appendLine("Topics discussed: ${profile.themes.joinToString(", ")}")
+                    appendLine("  Themes: ${profile.themes.joinToString(", ")}")
                 }
-                
-                appendLine()
+                if (profile.firstSeen != null) {
+                    appendLine("  First Appearance: ${profile.firstSeen}")
+                }
+                if (profile.lastSeen != null) {
+                    appendLine("  Last Appearance: ${profile.lastSeen}")
+                }
             }
+            appendLine()
         }
         
         return NarrativeSection(
@@ -127,17 +135,16 @@ object NarrativeEngine {
         
         val content = buildString {
             appendLine("CHRONOLOGICAL NARRATIVE")
-            appendLine("=" .repeat(40))
-            appendLine()
+            appendLine("------------------------")
             
             if (timeline.isEmpty()) {
                 appendLine("No timeline events could be extracted from the provided statements.")
             } else {
                 for (event in timeline) {
-                    val timestamp = event.timestamp ?: "Unknown date"
-                    val actor = event.actor?.rawName ?: "Unknown"
+                    val timestamp = event.timestamp ?: "[no timestamp]"
+                    val actor = event.actor?.displayName ?: "Unknown"
                     
-                    appendLine("[$timestamp] $actor:")
+                    appendLine("* $timestamp — $actor:")
                     appendLine("  ${event.description}")
                     appendLine()
                 }
@@ -158,28 +165,23 @@ object NarrativeEngine {
         contradictions: List<Contradiction>
     ): NarrativeSection {
         val content = buildString {
-            appendLine("CONTRADICTIONS IDENTIFIED")
-            appendLine("=" .repeat(40))
-            appendLine()
+            appendLine("CONTRADICTIONS DETECTED")
+            appendLine("------------------------")
             
             if (contradictions.isEmpty()) {
-                appendLine("No contradictions were detected in the analysed statements.")
+                appendLine("None detected.")
             } else {
-                for ((index, c) in contradictions.withIndex()) {
-                    appendLine("Contradiction #${index + 1}")
-                    appendLine("-".repeat(20))
-                    appendLine("Type: ${c.type.name.lowercase().replace("_", " ")}")
-                    appendLine("Actor: ${c.actor.rawName}")
-                    appendLine("Confidence: ${String.format("%.0f", c.confidence * 100)}%")
-                    appendLine()
-                    appendLine("First statement: \"${c.firstStatement.text}\"")
-                    appendLine("Second statement: \"${c.secondStatement.text}\"")
-                    appendLine()
-                    appendLine("Analysis: ${c.explanation}")
-                    appendLine()
+                for (c in contradictions) {
+                    appendLine("Actor: ${c.actor.displayName}")
+                    appendLine("Type: ${c.type}")
+                    appendLine("Confidence: ${(c.confidence * 100).toInt()}%")
+                    appendLine("Explanation: ${c.explanation}")
+                    appendLine("- Earlier: \"${c.firstStatement.text}\" (${c.firstStatement.timestamp ?: "no timestamp"})")
+                    appendLine("- Later: \"${c.secondStatement.text}\" (${c.secondStatement.timestamp ?: "no timestamp"})")
                     appendLine()
                 }
             }
+            appendLine()
         }
         
         return NarrativeSection(
@@ -196,23 +198,18 @@ object NarrativeEngine {
         shifts: List<BehaviourShift>
     ): NarrativeSection {
         val content = buildString {
-            appendLine("BEHAVIOURAL ANALYSIS")
-            appendLine("=" .repeat(40))
-            appendLine()
+            appendLine("BEHAVIOURAL SHIFTS")
+            appendLine("-------------------")
             
             if (shifts.isEmpty()) {
-                appendLine("No significant behavioural shifts were detected.")
+                appendLine("None detected.")
             } else {
-                val byActor = shifts.groupBy { it.actor.rawName }
-                
-                for ((actor, actorShifts) in byActor) {
-                    appendLine("$actor:")
-                    appendLine("-".repeat(actor.length + 1))
-                    
-                    for (shift in actorShifts) {
-                        appendLine("• ${shift.shiftType.name.lowercase().replace("_", " ")}: ${shift.description}")
-                    }
-                    
+                for (shift in shifts) {
+                    appendLine("Actor: ${shift.actor.displayName}")
+                    appendLine("Type: ${shift.shiftType}")
+                    appendLine("Description: ${shift.description}")
+                    appendLine("- From: \"${shift.fromStatement.text}\"")
+                    appendLine("- To: \"${shift.toStatement.text}\"")
                     appendLine()
                 }
             }
@@ -230,27 +227,9 @@ object NarrativeEngine {
      */
     private fun generateClosingSummary(report: ContradictionReport): NarrativeSection {
         val content = buildString {
-            appendLine("CLOSING SUMMARY")
+            appendLine()
+            appendLine("END OF REPORT")
             appendLine("=" .repeat(40))
-            appendLine()
-            
-            val highConfidence = report.contradictions.count { it.confidence >= 0.7 }
-            val mediumConfidence = report.contradictions.count { it.confidence in 0.4..0.69 }
-            
-            appendLine("This forensic analysis has identified:")
-            appendLine()
-            appendLine("Total contradictions: ${report.contradictions.size}")
-            if (highConfidence > 0) {
-                appendLine("- High confidence: $highConfidence")
-            }
-            if (mediumConfidence > 0) {
-                appendLine("- Medium confidence: $mediumConfidence")
-            }
-            appendLine()
-            appendLine("Behavioural shifts: ${report.behaviourShifts.size}")
-            appendLine()
-            appendLine("This report presents factual analysis only. Legal conclusions should be")
-            appendLine("drawn by qualified legal professionals based on the complete evidence.")
         }
         
         return NarrativeSection(
