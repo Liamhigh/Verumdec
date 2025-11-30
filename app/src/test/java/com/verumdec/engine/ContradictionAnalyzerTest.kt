@@ -19,33 +19,66 @@ class ContradictionAnalyzerTest {
         analyzer = ContradictionAnalyzer()
     }
 
+    /**
+     * Helper function to create test entity with proper constructor.
+     */
+    private fun createTestEntity(
+        id: String,
+        name: String,
+        emails: List<String> = emptyList()
+    ) = Entity(
+        id = id,
+        primaryName = name,
+        aliases = mutableListOf(),
+        emails = emails.toMutableList(),
+        phoneNumbers = mutableListOf()
+    )
+
+    /**
+     * Helper function to create test evidence with proper constructor.
+     */
+    private fun createTestEvidence(
+        id: String,
+        fileName: String,
+        type: EvidenceType,
+        text: String = "",
+        metadata: EvidenceMetadata = EvidenceMetadata(),
+        processed: Boolean = false
+    ) = Evidence(
+        id = id,
+        type = type,
+        fileName = fileName,
+        filePath = "/test/$fileName",
+        extractedText = text,
+        metadata = metadata,
+        processed = processed
+    )
+
     @Test
     fun testDirectContradictionDetection() {
         // Arrange
-        val entity = Entity(
+        val entity = createTestEntity(
             id = "entity1",
-            primaryName = "John Doe",
-            emails = mutableListOf("john@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "John Doe",
+            emails = listOf("john@example.com")
         )
 
-        val evidence1 = Evidence(
+        val evidence1 = createTestEvidence(
             id = "ev1",
             fileName = "email1.txt",
             type = EvidenceType.TEXT,
-            extractedText = "I paid the full amount as promised.",
+            text = "I paid the full amount as promised.",
             metadata = EvidenceMetadata(
                 sender = "John Doe",
                 creationDate = Date(System.currentTimeMillis() - 1000000)
             )
         )
 
-        val evidence2 = Evidence(
+        val evidence2 = createTestEvidence(
             id = "ev2",
             fileName = "email2.txt",
             type = EvidenceType.TEXT,
-            extractedText = "I never paid anything. You are lying.",
+            text = "I never paid anything. You are lying.",
             metadata = EvidenceMetadata(
                 sender = "John Doe",
                 creationDate = Date()
@@ -70,30 +103,28 @@ class ContradictionAnalyzerTest {
     @Test
     fun testDenialFollowedByAdmission() {
         // Arrange
-        val entity = Entity(
+        val entity = createTestEntity(
             id = "entity1",
-            primaryName = "Jane Smith",
-            emails = mutableListOf("jane@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Jane Smith",
+            emails = listOf("jane@example.com")
         )
 
-        val evidence1 = Evidence(
+        val evidence1 = createTestEvidence(
             id = "ev1",
             fileName = "statement1.txt",
             type = EvidenceType.TEXT,
-            extractedText = "I never agreed to that deal.",
+            text = "I never agreed to that deal.",
             metadata = EvidenceMetadata(
                 sender = "jane@example.com",
                 creationDate = Date(System.currentTimeMillis() - 2000000)
             )
         )
 
-        val evidence2 = Evidence(
+        val evidence2 = createTestEvidence(
             id = "ev2",
             fileName = "statement2.txt",
             type = EvidenceType.TEXT,
-            extractedText = "I did admit that I agreed. Yes, I made that commitment.",
+            text = "I did admit that I agreed. Yes, I made that commitment.",
             metadata = EvidenceMetadata(
                 sender = "jane@example.com",
                 creationDate = Date()
@@ -116,27 +147,25 @@ class ContradictionAnalyzerTest {
     @Test
     fun testCrossDocumentContradiction() {
         // Arrange
-        val entity = Entity(
+        val entity = createTestEntity(
             id = "entity1",
-            primaryName = "Bob Johnson",
-            emails = mutableListOf("bob@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Bob Johnson",
+            emails = listOf("bob@example.com")
         )
 
-        val evidence1 = Evidence(
+        val evidence1 = createTestEvidence(
             id = "ev1",
             fileName = "contract.pdf",
             type = EvidenceType.PDF,
-            extractedText = "The payment amount was agreed to be 10000 dollars.",
+            text = "The payment amount was agreed to be 10000 dollars.",
             metadata = EvidenceMetadata(sender = "bob@example.com")
         )
 
-        val evidence2 = Evidence(
+        val evidence2 = createTestEvidence(
             id = "ev2",
             fileName = "letter.pdf",
             type = EvidenceType.PDF,
-            extractedText = "The amount was never 10000 dollars. It was always 5000.",
+            text = "The amount was never 10000 dollars. It was always 5000.",
             metadata = EvidenceMetadata(sender = "bob@example.com")
         )
 
@@ -156,35 +185,31 @@ class ContradictionAnalyzerTest {
     @Test
     fun testThirdPartyContradiction() {
         // Arrange
-        val entity1 = Entity(
+        val entity1 = createTestEntity(
             id = "entity1",
-            primaryName = "Alice",
-            emails = mutableListOf("alice@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Alice",
+            emails = listOf("alice@example.com")
         )
 
-        val entity2 = Entity(
+        val entity2 = createTestEntity(
             id = "entity2",
-            primaryName = "Bob",
-            emails = mutableListOf("bob@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Bob",
+            emails = listOf("bob@example.com")
         )
 
-        val evidence1 = Evidence(
+        val evidence1 = createTestEvidence(
             id = "ev1",
             fileName = "email1.txt",
             type = EvidenceType.TEXT,
-            extractedText = "Alice said she received the payment in full yesterday at noon.",
+            text = "Alice said she received the payment in full yesterday at noon.",
             metadata = EvidenceMetadata(sender = "bob@example.com")
         )
 
-        val evidence2 = Evidence(
+        val evidence2 = createTestEvidence(
             id = "ev2",
             fileName = "email2.txt",
             type = EvidenceType.TEXT,
-            extractedText = "I never received any payment from Bob. He is lying.",
+            text = "I never received any payment from Bob. He is lying.",
             metadata = EvidenceMetadata(sender = "alice@example.com")
         )
 
@@ -207,30 +232,28 @@ class ContradictionAnalyzerTest {
     @Test
     fun testNoFalsePositives() {
         // Arrange - Consistent statements should not trigger contradictions
-        val entity = Entity(
+        val entity = createTestEntity(
             id = "entity1",
-            primaryName = "Charlie",
-            emails = mutableListOf("charlie@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Charlie",
+            emails = listOf("charlie@example.com")
         )
 
-        val evidence1 = Evidence(
+        val evidence1 = createTestEvidence(
             id = "ev1",
             fileName = "email1.txt",
             type = EvidenceType.TEXT,
-            extractedText = "I paid the invoice on time.",
+            text = "I paid the invoice on time.",
             metadata = EvidenceMetadata(
                 sender = "charlie@example.com",
                 creationDate = Date(System.currentTimeMillis() - 1000000)
             )
         )
 
-        val evidence2 = Evidence(
+        val evidence2 = createTestEvidence(
             id = "ev2",
             fileName = "email2.txt",
             type = EvidenceType.TEXT,
-            extractedText = "Yes, I confirmed that the payment was on time.",
+            text = "Yes, I confirmed that the payment was on time.",
             metadata = EvidenceMetadata(
                 sender = "charlie@example.com",
                 creationDate = Date()

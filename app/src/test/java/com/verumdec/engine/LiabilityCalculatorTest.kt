@@ -19,28 +19,80 @@ class LiabilityCalculatorTest {
         calculator = LiabilityCalculator()
     }
 
+    /**
+     * Helper function to create test entity with proper constructor.
+     */
+    private fun createTestEntity(
+        id: String,
+        name: String,
+        emails: List<String> = emptyList()
+    ) = Entity(
+        id = id,
+        primaryName = name,
+        aliases = mutableListOf(),
+        emails = emails.toMutableList(),
+        phoneNumbers = mutableListOf()
+    )
+
+    /**
+     * Helper function to create test evidence with proper constructor.
+     */
+    private fun createTestEvidence(
+        id: String,
+        fileName: String,
+        type: EvidenceType,
+        text: String = "",
+        metadata: EvidenceMetadata = EvidenceMetadata(),
+        processed: Boolean = false
+    ) = Evidence(
+        id = id,
+        type = type,
+        fileName = fileName,
+        filePath = "/test/$fileName",
+        extractedText = text,
+        metadata = metadata,
+        processed = processed
+    )
+
+    /**
+     * Helper function to create test statement with proper constructor.
+     */
+    private fun createTestStatement(
+        entityId: String,
+        text: String,
+        date: Date? = null,
+        sourceEvidenceId: String,
+        type: StatementType,
+        keywords: List<String> = emptyList()
+    ) = Statement(
+        entityId = entityId,
+        text = text,
+        date = date,
+        sourceEvidenceId = sourceEvidenceId,
+        type = type,
+        keywords = keywords
+    )
+
     @Test
     fun testBasicLiabilityCalculation() {
         // Arrange
-        val entity = Entity(
+        val entity = createTestEntity(
             id = "entity1",
-            primaryName = "Defendant",
-            emails = mutableListOf("defendant@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Defendant",
+            emails = listOf("defendant@example.com")
         )
 
-        val evidence = Evidence(
+        val evidence = createTestEvidence(
             id = "ev1",
             fileName = "email.txt",
             type = EvidenceType.TEXT,
-            extractedText = "Test evidence",
+            text = "Test evidence",
             metadata = EvidenceMetadata(sender = "defendant@example.com")
         )
 
         val contradiction = Contradiction(
             entityId = "entity1",
-            statementA = Statement(
+            statementA = createTestStatement(
                 entityId = "entity1",
                 text = "I paid the full amount",
                 date = Date(),
@@ -48,7 +100,7 @@ class LiabilityCalculatorTest {
                 type = StatementType.CLAIM,
                 keywords = listOf("paid", "full", "amount")
             ),
-            statementB = Statement(
+            statementB = createTestStatement(
                 entityId = "entity1",
                 text = "I never paid",
                 date = Date(),
@@ -82,19 +134,17 @@ class LiabilityCalculatorTest {
     @Test
     fun testNoLiabilityWithoutContradictions() {
         // Arrange
-        val entity = Entity(
+        val entity = createTestEntity(
             id = "entity1",
-            primaryName = "Innocent",
-            emails = mutableListOf("innocent@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Innocent",
+            emails = listOf("innocent@example.com")
         )
 
-        val evidence = Evidence(
+        val evidence = createTestEvidence(
             id = "ev1",
             fileName = "email.txt",
             type = EvidenceType.TEXT,
-            extractedText = "Test evidence",
+            text = "Test evidence",
             metadata = EvidenceMetadata(sender = "innocent@example.com")
         )
 
@@ -116,30 +166,73 @@ class LiabilityCalculatorTest {
     @Test
     fun testMultipleContradictionsIncreaseLiability() {
         // Arrange
-        val entity = Entity(
+        val entity = createTestEntity(
             id = "entity1",
-            primaryName = "Defendant",
-            emails = mutableListOf("defendant@example.com"),
-            phones = mutableListOf(),
-            aliases = mutableListOf()
+            name = "Defendant",
+            emails = listOf("defendant@example.com")
         )
 
-        val evidence = Evidence(
+        val evidence = createTestEvidence(
             id = "ev1",
             fileName = "email.txt",
             type = EvidenceType.TEXT,
-            extractedText = "Test evidence",
+            text = "Test evidence",
             metadata = EvidenceMetadata(sender = "defendant@example.com")
         )
 
-        val stmt1 = Statement("entity1", "Statement 1", Date(), "ev1", StatementType.CLAIM, listOf("test"))
-        val stmt2 = Statement("entity1", "Statement 2", Date(), "ev1", StatementType.DENIAL, listOf("test"))
-        val stmt3 = Statement("entity1", "Statement 3", Date(), "ev1", StatementType.ADMISSION, listOf("test"))
+        val stmt1 = createTestStatement(
+            entityId = "entity1",
+            text = "Statement 1",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.CLAIM,
+            keywords = listOf("test")
+        )
+        val stmt2 = createTestStatement(
+            entityId = "entity1",
+            text = "Statement 2",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.DENIAL,
+            keywords = listOf("test")
+        )
+        val stmt3 = createTestStatement(
+            entityId = "entity1",
+            text = "Statement 3",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.ADMISSION,
+            keywords = listOf("test")
+        )
 
         val contradictions = listOf(
-            Contradiction("entity1", stmt1, stmt2, ContradictionType.DIRECT, Severity.HIGH, "Test 1", "Impl 1"),
-            Contradiction("entity1", stmt2, stmt3, ContradictionType.DIRECT, Severity.CRITICAL, "Test 2", "Impl 2"),
-            Contradiction("entity1", stmt1, stmt3, ContradictionType.CROSS_DOCUMENT, Severity.HIGH, "Test 3", "Impl 3")
+            Contradiction(
+                entityId = "entity1",
+                statementA = stmt1,
+                statementB = stmt2,
+                type = ContradictionType.DIRECT,
+                severity = Severity.HIGH,
+                description = "Test 1",
+                legalImplication = "Impl 1"
+            ),
+            Contradiction(
+                entityId = "entity1",
+                statementA = stmt2,
+                statementB = stmt3,
+                type = ContradictionType.DIRECT,
+                severity = Severity.CRITICAL,
+                description = "Test 2",
+                legalImplication = "Impl 2"
+            ),
+            Contradiction(
+                entityId = "entity1",
+                statementA = stmt1,
+                statementB = stmt3,
+                type = ContradictionType.CROSS_DOCUMENT,
+                severity = Severity.HIGH,
+                description = "Test 3",
+                legalImplication = "Impl 3"
+            )
         )
 
         // Act
@@ -160,17 +253,66 @@ class LiabilityCalculatorTest {
     @Test
     fun testCriticalContributesMoreThanHigh() {
         // Arrange
-        val entity1 = Entity("entity1", "Defendant1", mutableListOf(), mutableListOf(), mutableListOf())
-        val entity2 = Entity("entity2", "Defendant2", mutableListOf(), mutableListOf(), mutableListOf())
-        val evidence = Evidence("ev1", "test.txt", EvidenceType.TEXT, "test", EvidenceMetadata())
+        val entity1 = createTestEntity(id = "entity1", name = "Defendant1")
+        val entity2 = createTestEntity(id = "entity2", name = "Defendant2")
+        val evidence = createTestEvidence(
+            id = "ev1",
+            fileName = "test.txt",
+            type = EvidenceType.TEXT,
+            text = "test"
+        )
 
-        val stmt1 = Statement("entity1", "S1", Date(), "ev1", StatementType.CLAIM, listOf("test"))
-        val stmt2 = Statement("entity1", "S2", Date(), "ev1", StatementType.DENIAL, listOf("test"))
-        val stmt3 = Statement("entity2", "S3", Date(), "ev1", StatementType.CLAIM, listOf("test"))
-        val stmt4 = Statement("entity2", "S4", Date(), "ev1", StatementType.DENIAL, listOf("test"))
+        val stmt1 = createTestStatement(
+            entityId = "entity1",
+            text = "S1",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.CLAIM,
+            keywords = listOf("test")
+        )
+        val stmt2 = createTestStatement(
+            entityId = "entity1",
+            text = "S2",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.DENIAL,
+            keywords = listOf("test")
+        )
+        val stmt3 = createTestStatement(
+            entityId = "entity2",
+            text = "S3",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.CLAIM,
+            keywords = listOf("test")
+        )
+        val stmt4 = createTestStatement(
+            entityId = "entity2",
+            text = "S4",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.DENIAL,
+            keywords = listOf("test")
+        )
 
-        val contradiction1 = Contradiction("entity1", stmt1, stmt2, ContradictionType.DIRECT, Severity.CRITICAL, "C1", "I1")
-        val contradiction2 = Contradiction("entity2", stmt3, stmt4, ContradictionType.DIRECT, Severity.HIGH, "C2", "I2")
+        val contradiction1 = Contradiction(
+            entityId = "entity1",
+            statementA = stmt1,
+            statementB = stmt2,
+            type = ContradictionType.DIRECT,
+            severity = Severity.CRITICAL,
+            description = "C1",
+            legalImplication = "I1"
+        )
+        val contradiction2 = Contradiction(
+            entityId = "entity2",
+            statementA = stmt3,
+            statementB = stmt4,
+            type = ContradictionType.DIRECT,
+            severity = Severity.HIGH,
+            description = "C2",
+            legalImplication = "I2"
+        )
 
         // Act
         val scores = calculator.calculateLiability(
