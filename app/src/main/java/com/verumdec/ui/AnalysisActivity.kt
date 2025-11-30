@@ -1,28 +1,26 @@
 package com.verumdec.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.verumdec.R
 import com.verumdec.data.*
 import com.verumdec.databinding.ActivityAnalysisBinding
 import com.verumdec.engine.ContradictionEngine
 import com.verumdec.viewmodel.ReportGenerationViewModel
-import kotlinx.coroutines.launch
 
 class AnalysisActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAnalysisBinding
     private lateinit var engine: ContradictionEngine
-    private lateinit var reportViewModel: ReportGenerationViewModel
+    private val reportViewModel: ReportGenerationViewModel by viewModels()
 
     companion object {
+        // Note: Using companion object for data passing is a simplification.
+        // For production, consider using SavedStateHandle or application-scoped ViewModel.
         var currentCase: Case? = null
     }
 
@@ -32,7 +30,6 @@ class AnalysisActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         engine = ContradictionEngine(this)
-        reportViewModel = ViewModelProvider(this)[ReportGenerationViewModel::class.java]
 
         setupToolbar()
         displayResults()

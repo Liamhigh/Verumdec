@@ -6,18 +6,18 @@ import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
+import android.util.LruCache
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.verumdec.R
 import com.verumdec.databinding.ActivityForensicReportViewerBinding
 import java.io.File
 
 /**
  * Activity for viewing forensic PDF reports.
- * Uses PdfRenderer for native Android PDF rendering.
+ * Uses PdfRenderer for native Android PDF rendering with lazy loading.
  */
 class ForensicReportViewerActivity : AppCompatActivity() {
 
@@ -26,7 +26,9 @@ class ForensicReportViewerActivity : AppCompatActivity() {
     private var fileDescriptor: ParcelFileDescriptor? = null
     private var currentPage = 0
     private var totalPages = 0
-    private val renderedPages = mutableListOf<Bitmap>()
+    
+    // LRU cache for rendered pages to avoid memory issues with large PDFs
+    private val pageCache: LruCache<Int, Bitmap> = LruCache(MAX_CACHED_PAGES)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,9 +112,6 @@ class ForensicReportViewerActivity : AppCompatActivity() {
 
             pdfRenderer = PdfRenderer(fileDescriptor!!)
             totalPages = pdfRenderer!!.pageCount
-
-            // Pre-render first few pages
-            renderAllPages()
             
             if (totalPages > 0) {
                 displayPage(0)
@@ -135,12 +134,19 @@ class ForensicReportViewerActivity : AppCompatActivity() {
         }
     }
 
-    private fun renderAllPages() {
-        renderedPages.clear()
-        val renderer = pdfRenderer ?: return
-
-        for (i in 0 until renderer.pageCount) {
-            val page = renderer.openPage(i)
+    /**
+     * Render a single page on demand with caching.
+     * Uses LruCache to limit memory usage for large PDFs.
+     */
+    private fun renderPage(pageIndex: Int): Bitmap? {
+        // Check cache first
+        pageCache.get(pageIndex)?.let { return it }
+        
+        val renderer = pdfRenderer ?: return null
+        if (pageIndex < 0 || pageIndex >= renderer.pageCount) return null
+        
+        return try {
+            val page = renderer.openPage(pageIndex)
             
             // Calculate scale for good quality
             val scale = 2.0f
@@ -161,19 +167,47 @@ class ForensicReportViewerActivity : AppCompatActivity() {
             )
             
             page.close()
-            renderedPages.add(bitmap)
+            
+            // Cache the rendered page
+            pageCache.put(pageIndex, bitmap)
+            
+            bitmap
+        } catch (e: Exception) {
+            null
         }
     }
 
     private fun displayPage(pageIndex: Int) {
-        if (pageIndex < 0 || pageIndex >= renderedPages.size) return
+        if (pageIndex < 0 || pageIndex >= totalPages) return
 
-        binding.imageReport.setImageBitmap(renderedPages[pageIndex])
-        binding.imageReport.scaleX = 1f
-        binding.imageReport.scaleY = 1f
+        binding.progressBar.visibility = View.VISIBLE
         
+        val bitmap = renderPage(pageIndex)
+        if (bitmap != null) {
+            binding.imageReport.setImageBitmap(bitmap)
+            binding.imageReport.scaleX = 1f
+            binding.imageReport.scaleY = 1f
+        }
+        
+        binding.progressBar.visibility = View.GONE
         currentPage = pageIndex
         updateNavigationState()
+        
+        // Pre-render adjacent pages in background for smoother navigation
+        preRenderAdjacentPages(pageIndex)
+    }
+    
+    /**
+     * Pre-render adjacent pages for smoother navigation.
+     */
+    private fun preRenderAdjacentPages(currentIndex: Int) {
+        // Render previous and next pages in cache if not already cached
+        if (currentIndex > 0 && pageCache.get(currentIndex - 1) == null) {
+            renderPage(currentIndex - 1)
+        }
+        if (currentIndex < totalPages - 1 && pageCache.get(currentIndex + 1) == null) {
+            renderPage(currentIndex + 1)
+        }
     }
 
     private fun updateNavigationState() {
@@ -221,14 +255,14 @@ class ForensicReportViewerActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // Clean up resources
-        renderedPages.forEach { it.recycle() }
-        renderedPages.clear()
+        pageCache.evictAll()
         pdfRenderer?.close()
         fileDescriptor?.close()
     }
 
     companion object {
         private const val EXTRA_PDF_PATH = "pdf_path"
+        private const val MAX_CACHED_PAGES = 5 // Limit cached pages to prevent memory issues
 
         fun newIntent(context: Context, pdfFile: File): Intent {
             return Intent(context, ForensicReportViewerActivity::class.java).apply {

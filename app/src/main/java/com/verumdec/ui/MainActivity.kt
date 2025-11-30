@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -26,8 +26,8 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var engine: ContradictionEngine
     private lateinit var evidenceAdapter: EvidenceAdapter
-    private lateinit var caseViewModel: CaseManagementViewModel
-    private lateinit var engineViewModel: EngineExecutionViewModel
+    private val caseViewModel: CaseManagementViewModel by viewModels()
+    private val engineViewModel: EngineExecutionViewModel by viewModels()
     
     private var currentCase: Case? = null
     private val evidenceUris = mutableMapOf<String, Uri>()
@@ -44,8 +44,6 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
         setContentView(binding.root)
 
         engine = ContradictionEngine(this)
-        caseViewModel = ViewModelProvider(this)[CaseManagementViewModel::class.java]
-        engineViewModel = ViewModelProvider(this)[EngineExecutionViewModel::class.java]
         
         setupUI()
         observeViewModels()
