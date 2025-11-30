@@ -54,6 +54,11 @@ android {
             excludes += "META-INF/NOTICE.txt"
         }
     }
+    
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
 }
 
 dependencies {

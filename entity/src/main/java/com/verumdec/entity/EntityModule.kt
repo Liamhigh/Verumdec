@@ -1,81 +1,67 @@
 package com.verumdec.entity
 
+import android.content.Context
+import com.verumdec.entity.discovery.EntityDiscoverer
+import com.verumdec.entity.extraction.ClaimExtractor
+import com.verumdec.entity.resolution.AliasResolver
+
 /**
- * Entity Module - Placeholder
+ * Entity Module - Entity Discovery and Management
  *
  * This module handles entity discovery and claim extraction from processed documents.
- * It identifies people, organizations, and relationships, and extracts factual claims and statements.
+ * It identifies people, organizations, and relationships, and extracts factual claims.
  *
- * ## Key Responsibilities:
- * - Discover entities (names, emails, phone numbers, companies, bank accounts)
+ * ## Key Features:
+ * - Discover entities (names, emails, phone numbers, companies)
  * - Cluster entities by frequency and co-occurrence
- * - Resolve aliases and references ("He", "my partner", "your friend Kevin")
+ * - Resolve aliases and references
  * - Extract claims and assertions from text
  * - Map statements to entities
- *
- * ## Pipeline Stage: 2 - ENTITY DISCOVERY (Who are the players?)
- *
- * ## Future Implementation:
- * - Named Entity Recognition (NER)
- * - Entity clustering algorithms
- * - Coreference resolution
- * - Claim extraction patterns
- * - Statement classification (promise, denial, assertion)
- *
- * ## Entity Data Structure:
- * - ID (unique identifier)
- * - Alias list (all names/references)
- * - Unique signatures (email, phone, bank account)
- * - Timeline footprint (where they appear)
- * - Statement map (everything they said)
- *
- * @see com.verumdec.core.CoreModule
  */
 object EntityModule {
 
-    /**
-     * Module version for tracking compatibility
-     */
     const val VERSION = "1.0.0"
-
-    /**
-     * Module name identifier
-     */
     const val NAME = "entity"
+
+    private var isInitialized = false
+    private var appContext: Context? = null
+    
+    private var entityDiscoverer: EntityDiscoverer? = null
+    private var claimExtractor: ClaimExtractor? = null
+    private var aliasResolver: AliasResolver? = null
 
     /**
      * Initialize the Entity module.
-     *
-     * TODO: Implement initialization logic
-     * - Load entity recognition models
-     * - Initialize pattern matchers
      */
-    fun initialize() {
-        // Placeholder for module initialization
+    fun initialize(context: Context) {
+        if (isInitialized) return
+        
+        appContext = context.applicationContext
+        entityDiscoverer = EntityDiscoverer()
+        claimExtractor = ClaimExtractor()
+        aliasResolver = AliasResolver()
+        
+        isInitialized = true
     }
 
     /**
-     * Discover entities from extracted text.
-     *
-     * TODO: Implement entity discovery
-     * @param text Extracted text content
-     * @return List of discovered entity identifiers
+     * Get entity discoverer.
      */
-    fun discoverEntities(text: String): List<String> {
-        // Placeholder for entity discovery
-        return emptyList()
+    fun getEntityDiscoverer(): EntityDiscoverer {
+        return entityDiscoverer ?: throw IllegalStateException("EntityModule not initialized")
     }
 
     /**
-     * Extract claims from text associated with an entity.
-     *
-     * TODO: Implement claim extraction
-     * @param text Text content to analyze
-     * @param entityId Entity identifier
-     * @return List of extracted claims
+     * Get claim extractor.
      */
-    fun extractClaims(text: String, entityId: String): List<String> {
-        // Placeholder for claim extraction
-        return emptyList()
+    fun getClaimExtractor(): ClaimExtractor {
+        return claimExtractor ?: throw IllegalStateException("EntityModule not initialized")
+    }
+
+    /**
+     * Get alias resolver.
+     */
+    fun getAliasResolver(): AliasResolver {
+        return aliasResolver ?: throw IllegalStateException("EntityModule not initialized")
     }
 }
