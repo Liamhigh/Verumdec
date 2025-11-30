@@ -1,36 +1,34 @@
 package com.verumdec.core
 
 /**
- * Core Module - Placeholder
+ * Core Module - Foundation for Verumdec Offline Contradiction Engine
  *
- * This module provides the foundational components for the Verumdec offline contradiction engine.
- * It contains shared data models, utilities, and base interfaces used across all other modules.
+ * This module provides the foundational components for the entire engine.
+ * It contains shared utilities, data models, and base interfaces.
  *
- * ## Key Responsibilities:
- * - Define common data models (Evidence, Entity, Claim, Contradiction, etc.)
- * - Provide shared utility functions and extensions
- * - Define base interfaces for pipeline stages
- * - Configuration constants and settings
+ * ## Key Components:
+ * - FileUtils: File operations and type detection
+ * - HashUtils: SHA-512/256 cryptographic hashing
+ * - MetadataUtils: Date parsing and metadata extraction
  *
- * ## Pipeline Role:
- * This is the foundational layer that all other modules depend on.
- * It establishes the common vocabulary and data structures for the entire engine.
+ * ## Usage:
+ * ```kotlin
+ * // File utilities
+ * val isImage = FileUtils.isImageFile("photo.jpg")
+ * val mimeType = FileUtils.getMimeType("document.pdf")
+ * 
+ * // Hash utilities
+ * val hash = HashUtils.sha512("content to hash")
+ * val isValid = HashUtils.verifySha512(content, expectedHash)
+ * 
+ * // Metadata utilities
+ * val date = MetadataUtils.parseDate("2024-01-15")
+ * val emails = MetadataUtils.extractAllEmails(text)
+ * ```
  *
- * ## Future Implementation:
- * - Data models for evidence items (PDF, Image, Text, Email, WhatsApp)
- * - Claim and assertion data structures
- * - Contradiction severity enums
- * - Entity representation classes
- * - Timeline event models
- * - Liability score data structures
- *
- * @see com.verumdec.ocr.OcrModule
- * @see com.verumdec.pdf.PdfModule
- * @see com.verumdec.entity.EntityModule
- * @see com.verumdec.timeline.TimelineModule
- * @see com.verumdec.analysis.AnalysisModule
- * @see com.verumdec.report.ReportModule
- * @see com.verumdec.ui.UiModule
+ * @see FileUtils
+ * @see HashUtils
+ * @see MetadataUtils
  */
 object CoreModule {
 
@@ -43,17 +41,39 @@ object CoreModule {
      * Module name identifier
      */
     const val NAME = "core"
+    
+    /**
+     * Build number
+     */
+    const val BUILD = 1
 
     /**
      * Initialize the core module.
-     * This should be called before using any other modules.
-     *
-     * TODO: Implement initialization logic
-     * - Load configuration
-     * - Initialize shared resources
-     * - Validate environment
+     * Should be called before using any other modules.
      */
     fun initialize() {
-        // Placeholder for module initialization
+        // Core module is stateless, no initialization needed
     }
+    
+    /**
+     * Get module information.
+     */
+    fun getInfo(): ModuleInfo {
+        return ModuleInfo(
+            name = NAME,
+            version = VERSION,
+            build = BUILD,
+            components = listOf("FileUtils", "HashUtils", "MetadataUtils")
+        )
+    }
+    
+    /**
+     * Module information data class.
+     */
+    data class ModuleInfo(
+        val name: String,
+        val version: String,
+        val build: Int,
+        val components: List<String>
+    )
 }
