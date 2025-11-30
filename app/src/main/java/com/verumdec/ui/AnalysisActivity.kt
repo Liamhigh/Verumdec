@@ -11,16 +11,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.verumdec.R
 import com.verumdec.data.*
 import com.verumdec.databinding.ActivityAnalysisBinding
-import com.verumdec.engine.ContradictionEngine
+import com.verumdec.core.leveler.Leveler
+import com.verumdec.core.leveler.LevelerOutput
 import kotlinx.coroutines.launch
 
 class AnalysisActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAnalysisBinding
-    private lateinit var engine: ContradictionEngine
+    private lateinit var engine: Leveler
 
     companion object {
         var currentCase: Case? = null
+        var levelerOutput: LevelerOutput? = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +30,8 @@ class AnalysisActivity : AppCompatActivity() {
         binding = ActivityAnalysisBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        engine = ContradictionEngine(this)
+        // NEW: Initialize Leveler engine
+        engine = Leveler(this)
 
         setupToolbar()
         displayResults()
@@ -82,7 +85,7 @@ class AnalysisActivity : AppCompatActivity() {
         }
         liabilityAdapter.submitList(case.liabilityScores.values.toList().sortedByDescending { it.overallScore })
 
-        // Display narrative
+        // Display narrative (now includes Leveler engine output)
         binding.textNarrative.text = case.narrative.ifEmpty { 
             "Narrative will be generated with the full report."
         }
@@ -96,13 +99,15 @@ class AnalysisActivity : AppCompatActivity() {
 
     private fun generateReport() {
         val case = currentCase ?: return
+        val output = levelerOutput
 
         binding.btnGenerateReport.isEnabled = false
-        binding.btnGenerateReport.text = "Generating..."
+        binding.btnGenerateReport.text = "Generating with Leveler..."
 
         lifecycleScope.launch {
             try {
-                val file = engine.generateReport(case)
+                // Generate report using new Leveler engine output
+                val file = LevelerReportGenerator(this@AnalysisActivity).generateReport(case, output)
                 
                 binding.btnGenerateReport.isEnabled = true
                 binding.btnGenerateReport.text = getString(R.string.btn_generate_report)
@@ -120,7 +125,7 @@ class AnalysisActivity : AppCompatActivity() {
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
 
-                startActivity(Intent.createChooser(shareIntent, "Share Report"))
+                startActivity(Intent.createChooser(shareIntent, "Share Leveler Report"))
 
             } catch (e: Exception) {
                 binding.btnGenerateReport.isEnabled = true

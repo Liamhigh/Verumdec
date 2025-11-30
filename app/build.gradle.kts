@@ -58,6 +58,14 @@ android {
 
 dependencies {
     // ============================================
+    // NEW LEVELER ENGINE MODULES
+    // ============================================
+    implementation(project(":core"))
+    implementation(project(":analysis"))
+    implementation(project(":entity"))
+    implementation(project(":timeline"))
+    
+    // ============================================
     // Core Android
     // ============================================
     implementation("androidx.core:core-ktx:1.12.0")
