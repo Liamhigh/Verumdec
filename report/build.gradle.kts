@@ -75,10 +75,13 @@ dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.12.0")
 
+    // PDF generation using PDFBox for Android
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
+    // QR Code generation using ZXing
+    implementation("com.google.zxing:core:3.5.2")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
-
-    // TODO: Add PDFBox dependency for PDF generation when implementing
-    // implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 }
