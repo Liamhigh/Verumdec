@@ -1,36 +1,25 @@
 package com.verumdec.analysis
 
 /**
- * Analysis Module - Placeholder
+ * Analysis Module - Contradiction Detection and Behavioral Analysis
  *
- * This module handles contradiction detection, behavioral analysis, and liability calculation.
- * It is the core "truth engine" of the Verumdec system.
- *
- * ## Key Responsibilities:
- * - Detect Direct Contradictions (A says X then NOT X)
- * - Detect Cross-Document Contradictions
- * - Detect Behavioral Contradictions (story shifts, tone changes)
- * - Detect Missing-Evidence Contradictions
- * - Calculate contradiction severity scores
- * - Analyze behavioral patterns (gaslighting, deflection, manipulation)
- * - Calculate liability scores for each entity
+ * This module handles the core "truth engine" functionality:
+ * - Contradiction detection (direct, cross-document, temporal, behavioral)
+ * - Behavioral pattern recognition (gaslighting, deflection, manipulation)
+ * - Liability matrix calculation
  *
  * ## Pipeline Stages:
  * - Stage 4: CONTRADICTION ANALYSIS (the truth engine)
  * - Stage 5: BEHAVIOURAL ANALYSIS
  * - Stage 6: LIABILITY MATRIX (Mathematical Scoring)
  *
- * ## Future Implementation:
- * - Semantic similarity analysis for contradiction detection
- * - Pattern matching for behavioral indicators
- * - Statistical analysis for liability scoring
- * - Machine learning models for classification
- *
- * ## Contradiction Severity Levels:
- * - Critical: Flips liability
- * - High: Dishonest intent likely
- * - Medium: Unclear/error
- * - Low: Harmless inconsistency
+ * ## Contradiction Types:
+ * - Direct: A says X, then A says NOT X
+ * - Cross-Document: Different stories in different documents
+ * - Temporal: Timeline inconsistencies
+ * - Behavioral: Story shifts, tone changes
+ * - Missing Evidence: References to non-existent proof
+ * - Third-Party: Contradicted by another party
  *
  * ## Behavioral Patterns Detected:
  * - Gaslighting
@@ -42,9 +31,9 @@ package com.verumdec.analysis
  * - Slip-up admissions
  * - Blame shifting
  *
- * @see com.verumdec.core.CoreModule
- * @see com.verumdec.entity.EntityModule
- * @see com.verumdec.timeline.TimelineModule
+ * @see ContradictionDetector
+ * @see BehavioralAnalyzer
+ * @see LiabilityCalculator
  */
 object AnalysisModule {
 
@@ -57,59 +46,49 @@ object AnalysisModule {
      * Module name identifier
      */
     const val NAME = "analysis"
+    
+    /**
+     * Severity levels for contradictions
+     */
+    enum class SeverityLevel(val weight: Float) {
+        CRITICAL(1.0f),  // Flips liability
+        HIGH(0.7f),      // Dishonest intent likely
+        MEDIUM(0.4f),    // Unclear/error
+        LOW(0.1f)        // Harmless inconsistency
+    }
+    
+    /**
+     * Liability calculation weights
+     */
+    object Weights {
+        const val CONTRADICTION = 0.30f
+        const val BEHAVIORAL = 0.20f
+        const val EVIDENCE = 0.15f
+        const val CONSISTENCY = 0.20f
+        const val CAUSAL = 0.15f
+    }
 
     /**
      * Initialize the Analysis module.
-     *
-     * TODO: Implement initialization logic
-     * - Load analysis models
-     * - Configure scoring weights
      */
     fun initialize() {
-        // Placeholder for module initialization
+        // Analysis module initialization
     }
 
     /**
-     * Detect contradictions in entity statements.
-     *
-     * TODO: Implement contradiction detection
-     * @param entityId Entity identifier
-     * @param statements List of statements with timestamps
-     * @return List of detected contradictions
+     * Get module information.
      */
-    fun detectContradictions(entityId: String, statements: List<Any>): List<Any> {
-        // Placeholder for contradiction detection
-        return emptyList()
+    fun getInfo(): ModuleInfo {
+        return ModuleInfo(
+            name = NAME,
+            version = VERSION,
+            components = listOf("ContradictionDetector", "BehavioralAnalyzer", "LiabilityCalculator")
+        )
     }
-
-    /**
-     * Analyze behavioral patterns for an entity.
-     *
-     * TODO: Implement behavioral analysis
-     * @param entityId Entity identifier
-     * @param communications List of communications
-     * @return Behavioral analysis results
-     */
-    fun analyzeBehavior(entityId: String, communications: List<Any>): Map<String, Any> {
-        // Placeholder for behavioral analysis
-        return emptyMap()
-    }
-
-    /**
-     * Calculate liability score for an entity.
-     *
-     * TODO: Implement liability calculation
-     * @param entityId Entity identifier
-     * @param contradictions Detected contradictions
-     * @param behavioralPatterns Behavioral analysis results
-     * @return Liability score (0-100)
-     */
-    fun calculateLiability(
-        entityId: String,
-        contradictions: List<Any>,
-        behavioralPatterns: Map<String, Any>
-    ): Int {
-        // Placeholder for liability calculation
-        return 0
-    }
+    
+    data class ModuleInfo(
+        val name: String,
+        val version: String,
+        val components: List<String>
+    )
 }

@@ -237,4 +237,213 @@ class TimelineGenerator {
             null
         }
     }
+    
+    /**
+     * Auto-build timeline with intelligent gap filling and relationship detection.
+     * This enhanced method provides better timeline coherence.
+     */
+    fun autoBuiltTimeline(
+        evidenceList: List<Evidence>,
+        entities: List<Entity>,
+        options: TimelineOptions = TimelineOptions()
+    ): TimelineResult {
+        val rawEvents = generateTimeline(evidenceList, entities)
+        
+        // Sort and deduplicate
+        val sortedEvents = rawEvents.sortedBy { it.date }.distinctBy { 
+            "${it.date.time / 60000}-${it.eventType}-${it.description.take(50)}" 
+        }
+        
+        // Analyze gaps
+        val gaps = analyzeTimelineGaps(sortedEvents)
+        
+        // Detect clusters of activity
+        val clusters = detectActivityClusters(sortedEvents)
+        
+        // Build entity timelines
+        val entityTimelines = buildEntityTimelines(sortedEvents, entities)
+        
+        // Generate timeline summary
+        val summary = generateTimelineSummary(sortedEvents, gaps, clusters)
+        
+        return TimelineResult(
+            events = if (options.maxEvents > 0) sortedEvents.take(options.maxEvents) else sortedEvents,
+            gaps = gaps,
+            clusters = clusters,
+            entityTimelines = entityTimelines,
+            summary = summary
+        )
+    }
+    
+    /**
+     * Analyze gaps in the timeline.
+     */
+    private fun analyzeTimelineGaps(events: List<TimelineEvent>): List<TimelineGap> {
+        val gaps = mutableListOf<TimelineGap>()
+        
+        if (events.size < 2) return gaps
+        
+        for (i in 0 until events.size - 1) {
+            val current = events[i]
+            val next = events[i + 1]
+            val gapDays = (next.date.time - current.date.time) / (24 * 60 * 60 * 1000)
+            
+            if (gapDays >= 7) { // Gap of 7+ days is significant
+                gaps.add(TimelineGap(
+                    startDate = current.date,
+                    endDate = next.date,
+                    daysLength = gapDays.toInt(),
+                    significance = when {
+                        gapDays >= 30 -> Significance.CRITICAL
+                        gapDays >= 14 -> Significance.HIGH
+                        else -> Significance.NORMAL
+                    }
+                ))
+            }
+        }
+        
+        return gaps
+    }
+    
+    /**
+     * Detect clusters of activity in the timeline.
+     */
+    private fun detectActivityClusters(events: List<TimelineEvent>): List<ActivityCluster> {
+        val clusters = mutableListOf<ActivityCluster>()
+        
+        if (events.isEmpty()) return clusters
+        
+        var clusterStart = events.first().date
+        var clusterEvents = mutableListOf<TimelineEvent>()
+        
+        for (event in events) {
+            val daysSinceClusterStart = (event.date.time - clusterStart.time) / (24 * 60 * 60 * 1000)
+            
+            if (daysSinceClusterStart <= 3) {
+                clusterEvents.add(event)
+            } else {
+                if (clusterEvents.size >= 3) {
+                    clusters.add(ActivityCluster(
+                        startDate = clusterStart,
+                        endDate = clusterEvents.last().date,
+                        eventCount = clusterEvents.size,
+                        dominantType = clusterEvents.groupBy { it.eventType }
+                            .maxByOrNull { it.value.size }?.key ?: EventType.OTHER
+                    ))
+                }
+                clusterStart = event.date
+                clusterEvents = mutableListOf(event)
+            }
+        }
+        
+        // Add final cluster if significant
+        if (clusterEvents.size >= 3) {
+            clusters.add(ActivityCluster(
+                startDate = clusterStart,
+                endDate = clusterEvents.last().date,
+                eventCount = clusterEvents.size,
+                dominantType = clusterEvents.groupBy { it.eventType }
+                    .maxByOrNull { it.value.size }?.key ?: EventType.OTHER
+            ))
+        }
+        
+        return clusters
+    }
+    
+    /**
+     * Build separate timelines for each entity.
+     */
+    private fun buildEntityTimelines(
+        events: List<TimelineEvent>,
+        entities: List<Entity>
+    ): Map<String, List<TimelineEvent>> {
+        return entities.associate { entity ->
+            entity.id to events.filter { event ->
+                entity.id in event.entityIds ||
+                event.description.contains(entity.primaryName, ignoreCase = true) ||
+                entity.aliases.any { alias -> 
+                    event.description.contains(alias, ignoreCase = true) 
+                }
+            }
+        }
+    }
+    
+    /**
+     * Generate a summary of the timeline.
+     */
+    private fun generateTimelineSummary(
+        events: List<TimelineEvent>,
+        gaps: List<TimelineGap>,
+        clusters: List<ActivityCluster>
+    ): TimelineSummary {
+        if (events.isEmpty()) {
+            return TimelineSummary(
+                totalEvents = 0,
+                dateRange = null,
+                significantGaps = 0,
+                activityClusters = 0,
+                eventTypeBreakdown = emptyMap()
+            )
+        }
+        
+        return TimelineSummary(
+            totalEvents = events.size,
+            dateRange = Pair(events.first().date, events.last().date),
+            significantGaps = gaps.count { it.significance == Significance.HIGH || it.significance == Significance.CRITICAL },
+            activityClusters = clusters.size,
+            eventTypeBreakdown = events.groupBy { it.eventType }
+                .mapValues { it.value.size }
+        )
+    }
 }
+
+/**
+ * Timeline generation options.
+ */
+data class TimelineOptions(
+    val maxEvents: Int = 0,  // 0 = no limit
+    val includeGapAnalysis: Boolean = true,
+    val includeClusterDetection: Boolean = true
+)
+
+/**
+ * Result of enhanced timeline generation.
+ */
+data class TimelineResult(
+    val events: List<TimelineEvent>,
+    val gaps: List<TimelineGap>,
+    val clusters: List<ActivityCluster>,
+    val entityTimelines: Map<String, List<TimelineEvent>>,
+    val summary: TimelineSummary
+)
+
+/**
+ * Represents a gap in the timeline.
+ */
+data class TimelineGap(
+    val startDate: Date,
+    val endDate: Date,
+    val daysLength: Int,
+    val significance: Significance
+)
+
+/**
+ * Represents a cluster of activity.
+ */
+data class ActivityCluster(
+    val startDate: Date,
+    val endDate: Date,
+    val eventCount: Int,
+    val dominantType: EventType
+)
+
+/**
+ * Summary of timeline analysis.
+ */
+data class TimelineSummary(
+    val totalEvents: Int,
+    val dateRange: Pair<Date, Date>?,
+    val significantGaps: Int,
+    val activityClusters: Int,
+    val eventTypeBreakdown: Map<EventType, Int>
+)

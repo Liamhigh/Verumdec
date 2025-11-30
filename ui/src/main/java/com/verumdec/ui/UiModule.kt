@@ -1,42 +1,23 @@
 package com.verumdec.ui
 
 /**
- * UI Module - Placeholder
+ * UI Module - Presentation Layer Components
  *
- * This module provides the presentation layer, shared layouts, and reusable UI components.
- * It contains common UI elements used across the application.
- *
- * ## Key Responsibilities:
- * - Provide shared UI components and custom views
- * - Define common layouts and themes
- * - Create reusable adapters and view holders
- * - Offer UI utilities and extensions
- * - Implement design system components
+ * This module provides shared UI components and layouts.
+ * It contains reusable views for the forensic analysis interface.
  *
  * ## Pipeline Stage: 9 - User Interaction Layer
- * Provides the interface for users to interact with all pipeline stages.
  *
- * ## Future Implementation:
- * - Evidence list/grid components
- * - Timeline visualization widgets
- * - Contradiction display cards
- * - Entity relationship diagrams
- * - Liability score visualizations
- * - Report preview components
- * - Progress indicators
- * - File picker integrations
- *
- * ## UI Components to Implement:
- * - Evidence item cards
- * - Timeline event views
- * - Contradiction severity badges
- * - Entity profile cards
+ * ## Components:
+ * - Evidence list/grid views
+ * - Timeline visualization
+ * - Contradiction cards
  * - Liability score gauges
- * - Report section headers
- * - Loading/progress states
- * - Empty state views
+ * - Report preview components
  *
- * @see com.verumdec.core.CoreModule
+ * @see EvidenceAdapter
+ * @see TimelineAdapter
+ * @see ContradictionCard
  */
 object UiModule {
 
@@ -52,12 +33,25 @@ object UiModule {
 
     /**
      * Initialize the UI module.
-     *
-     * TODO: Implement initialization logic
-     * - Register custom views
-     * - Initialize theme components
      */
     fun initialize() {
-        // Placeholder for module initialization
+        // UI module initialization
     }
+
+    /**
+     * Get module information.
+     */
+    fun getInfo(): ModuleInfo {
+        return ModuleInfo(
+            name = NAME,
+            version = VERSION,
+            components = listOf("EvidenceAdapter", "TimelineAdapter", "ContradictionCard", "LiabilityGauge")
+        )
+    }
+    
+    data class ModuleInfo(
+        val name: String,
+        val version: String,
+        val components: List<String>
+    )
 }

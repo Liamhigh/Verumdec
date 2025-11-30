@@ -203,24 +203,72 @@ class EvidenceProcessor(private val context: Context) {
     }
 
     companion object {
+        // Supported file extension mappings
+        private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "bmp", "gif", "webp", "heic", "heif")
+        private val PDF_EXTENSIONS = setOf("pdf")
+        private val TEXT_EXTENSIONS = setOf("txt", "rtf", "md", "csv")
+        private val EMAIL_EXTENSIONS = setOf("eml", "msg")
+        private val DOCUMENT_EXTENSIONS = setOf("doc", "docx", "odt")
+        private val VIDEO_EXTENSIONS = setOf("mp4", "mov", "avi", "mkv", "webm", "m4v")
+        private val AUDIO_EXTENSIONS = setOf("mp3", "wav", "m4a", "aac", "ogg", "flac")
+        
         /**
          * Determine evidence type from file extension.
+         * Enhanced to support more file types.
          */
         fun getEvidenceType(fileName: String): EvidenceType {
             val extension = fileName.substringAfterLast('.', "").lowercase()
-            return when (extension) {
-                "pdf" -> EvidenceType.PDF
-                "jpg", "jpeg", "png", "bmp", "gif", "webp" -> EvidenceType.IMAGE
-                "txt" -> EvidenceType.TEXT
-                "eml", "msg" -> EvidenceType.EMAIL
-                else -> {
-                    // Check for WhatsApp export pattern
-                    if (fileName.contains("whatsapp", ignoreCase = true)) {
-                        EvidenceType.WHATSAPP
-                    } else {
-                        EvidenceType.TEXT
-                    }
-                }
+            val lowerName = fileName.lowercase()
+            
+            return when {
+                // Check for WhatsApp export pattern first (can have various extensions)
+                lowerName.contains("whatsapp") || lowerName.contains("wa_chat") -> EvidenceType.WHATSAPP
+                
+                // Standard type detection
+                extension in PDF_EXTENSIONS -> EvidenceType.PDF
+                extension in IMAGE_EXTENSIONS -> EvidenceType.IMAGE
+                extension in EMAIL_EXTENSIONS -> EvidenceType.EMAIL
+                extension in TEXT_EXTENSIONS -> EvidenceType.TEXT
+                extension in DOCUMENT_EXTENSIONS -> EvidenceType.TEXT // Will be processed as text
+                extension in VIDEO_EXTENSIONS -> EvidenceType.UNKNOWN // Video metadata only
+                extension in AUDIO_EXTENSIONS -> EvidenceType.UNKNOWN // Audio metadata only
+                
+                // Default to text if unknown
+                else -> EvidenceType.TEXT
+            }
+        }
+        
+        /**
+         * Check if a file is a supported evidence type.
+         */
+        fun isSupportedFile(fileName: String): Boolean {
+            val extension = fileName.substringAfterLast('.', "").lowercase()
+            return extension in getAllSupportedExtensions()
+        }
+        
+        /**
+         * Get all supported file extensions.
+         */
+        fun getAllSupportedExtensions(): Set<String> {
+            return IMAGE_EXTENSIONS + PDF_EXTENSIONS + TEXT_EXTENSIONS + 
+                   EMAIL_EXTENSIONS + DOCUMENT_EXTENSIONS + VIDEO_EXTENSIONS + AUDIO_EXTENSIONS
+        }
+        
+        /**
+         * Get a human-readable description of the file type.
+         */
+        fun getFileTypeDescription(fileName: String): String {
+            val extension = fileName.substringAfterLast('.', "").lowercase()
+            return when {
+                fileName.lowercase().contains("whatsapp") -> "WhatsApp Export"
+                extension in PDF_EXTENSIONS -> "PDF Document"
+                extension in IMAGE_EXTENSIONS -> "Image/Screenshot"
+                extension in EMAIL_EXTENSIONS -> "Email Export"
+                extension in TEXT_EXTENSIONS -> "Text File"
+                extension in DOCUMENT_EXTENSIONS -> "Document"
+                extension in VIDEO_EXTENSIONS -> "Video File"
+                extension in AUDIO_EXTENSIONS -> "Audio File"
+                else -> "Unknown File"
             }
         }
     }

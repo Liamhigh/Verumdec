@@ -1,36 +1,21 @@
 package com.verumdec.pdf
 
 /**
- * PDF Module - Placeholder
+ * PDF Module - PDF Processing and Metadata Extraction
  *
- * This module handles PDF processing, parsing, and metadata extraction.
- * It provides utilities for extracting text, metadata, and structural information from PDF documents.
- *
- * ## Key Responsibilities:
- * - Extract plain text from PDF documents
- * - Parse document metadata (creation date, author, etc.)
- * - Extract embedded images and attachments
- * - Analyze document structure
+ * This module handles PDF document processing using PDFBox.
+ * It extracts text, metadata, and structural information.
  *
  * ## Pipeline Stage: 1 - INPUT LAYER (Evidence Ingestion)
- * Handles: PDFs and their embedded content
  *
- * ## Future Implementation:
- * - Apache PDFBox integration for Android
- * - Text extraction with position information
- * - Metadata parsing (dates, EXIF, timestamps)
- * - Embedded content extraction
- * - Digital signature detection
+ * ## Capabilities:
+ * - Text extraction from PDFs
+ * - Metadata parsing (dates, author, creation info)
+ * - Embedded image detection
  * - Form field extraction
  *
- * ## Extracted Data:
- * - Plain text content
- * - Document metadata (creation date, modification date, author)
- * - File creation timestamps
- * - Embedded images
- * - Form field values
- *
- * @see com.verumdec.core.CoreModule
+ * @see PDFTextExtractor
+ * @see PDFMetadataParser
  */
 object PdfModule {
 
@@ -46,37 +31,25 @@ object PdfModule {
 
     /**
      * Initialize the PDF module.
-     *
-     * TODO: Implement initialization logic
-     * - Initialize PDFBox
-     * - Configure font handling
-     * - Set up memory management
      */
     fun initialize() {
-        // Placeholder for module initialization
+        // PDF module initialization
     }
 
     /**
-     * Extract text from a PDF document.
-     *
-     * TODO: Implement PDF text extraction
-     * @param pdfPath Path to the PDF file
-     * @return Extracted text content
+     * Get module information.
      */
-    fun extractText(pdfPath: String): String {
-        // Placeholder for PDF text extraction
-        return ""
+    fun getInfo(): ModuleInfo {
+        return ModuleInfo(
+            name = NAME,
+            version = VERSION,
+            components = listOf("PDFTextExtractor", "PDFMetadataParser")
+        )
     }
-
-    /**
-     * Extract metadata from a PDF document.
-     *
-     * TODO: Implement PDF metadata extraction
-     * @param pdfPath Path to the PDF file
-     * @return Map of metadata key-value pairs
-     */
-    fun extractMetadata(pdfPath: String): Map<String, String> {
-        // Placeholder for PDF metadata extraction
-        return emptyMap()
-    }
+    
+    data class ModuleInfo(
+        val name: String,
+        val version: String,
+        val components: List<String>
+    )
 }
