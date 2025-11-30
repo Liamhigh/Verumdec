@@ -208,3 +208,29 @@ Just say:
 “Generate Kotlin timeline + narrative code.”
 
 # Verumdec
+
+## Supporting Documentation
+
+This repository includes comprehensive legal documentation that provides context, history, and legal validation for the Verum Omnis Contradiction Engine:
+
+### Legal Case Files
+| Document | Description |
+|----------|-------------|
+| `Copy of Greensky_Case_File_WITH_DECLARATION-1 (1).pdf` | Complete Greensky case file with legal declaration |
+| `Southbridge_CaseFile_MASTER_Sealed_Indexed_compressed.PDF` | Master Southbridge case file, sealed and indexed |
+| `verumuaecasefile.pdf` | UAE jurisdiction case file |
+| `Scanned_Affidavit_Sealed.pdf` | Sealed affidavit providing sworn testimony |
+
+### Verum Omnis Documentation
+| Document | Description |
+|----------|-------------|
+| `Copy of Verum_Omnis_Validated_Case_Sealed_v5.1.1 (1).PDF.pdf` | Validated case analysis with SHA-512 sealing |
+| `Verum_Omnis_Master_Forensic_Archive_v5.2.7_(Institutional_Edition).PDF` | Comprehensive institutional forensic archive |
+| `Verum_Omnis_Constitutional_Charter_with_Statement (1).pdf` | Constitutional charter and founding statement |
+| `Verum omnis(3).PDF` | Core Verum Omnis system documentation |
+| `VO_Contradiction_Engine_Developer_Manual.pdf` | Technical developer manual for the contradiction engine |
+
+These documents serve as:
+- **Legal Validation**: Demonstrating real-world application and court-readiness of the contradiction engine
+- **Historical Context**: Documenting the evolution and proven effectiveness of the forensic analysis methodology
+- **Institutional Reference**: Providing comprehensive examples for institutional adoption and verification
