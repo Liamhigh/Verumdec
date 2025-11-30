@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -36,15 +37,17 @@ class ViolationAdapter : ListAdapter<ConstitutionViolation, ViolationAdapter.Vie
         private val textDetails: TextView = itemView.findViewById(R.id.textViolationDetails)
 
         fun bind(violation: ConstitutionViolation) {
+            val context = itemView.context
             textSeverity.text = violation.severity.name
             
-            val (bgColor, textColor) = when (violation.severity) {
-                ConstitutionViolationSeverity.CRITICAL -> Color.parseColor("#D32F2F") to Color.WHITE
-                ConstitutionViolationSeverity.HIGH -> Color.parseColor("#F57C00") to Color.WHITE
-                ConstitutionViolationSeverity.MEDIUM -> Color.parseColor("#FBC02D") to Color.BLACK
-                ConstitutionViolationSeverity.LOW -> Color.parseColor("#388E3C") to Color.WHITE
+            val (bgColorRes, textColor) = when (violation.severity) {
+                ConstitutionViolationSeverity.CRITICAL -> R.color.severity_critical to Color.WHITE
+                ConstitutionViolationSeverity.HIGH -> R.color.severity_high to Color.WHITE
+                ConstitutionViolationSeverity.MEDIUM -> R.color.severity_medium to Color.BLACK
+                ConstitutionViolationSeverity.LOW -> R.color.severity_low to Color.WHITE
             }
             
+            val bgColor = ContextCompat.getColor(context, bgColorRes)
             val background = GradientDrawable().apply {
                 setColor(bgColor)
                 cornerRadius = 8f

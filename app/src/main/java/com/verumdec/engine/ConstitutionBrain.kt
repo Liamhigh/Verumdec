@@ -3,9 +3,21 @@ package com.verumdec.engine
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.verumdec.data.*
+import com.verumdec.data.Constitution
+import com.verumdec.data.ConstitutionCheckType
+import com.verumdec.data.ConstitutionEnforcementResult
+import com.verumdec.data.ConstitutionMetadata
+import com.verumdec.data.ConstitutionRule
+import com.verumdec.data.ConstitutionViolation
+import com.verumdec.data.ConstitutionViolationSeverity
+import com.verumdec.data.Contradiction
+import com.verumdec.data.Entity
+import com.verumdec.data.Evidence
+import com.verumdec.data.EvidenceType
+import com.verumdec.data.Statement
+import com.verumdec.data.StatementType
 import java.security.MessageDigest
-import java.util.*
+import java.util.Date
 
 /**
  * ConstitutionBrain - Enforces the Verum Omnis Constitutional Charter.
@@ -182,12 +194,6 @@ class ConstitutionBrain(private val context: Context) {
         
         if (entities.isEmpty()) return violations
         
-        // Check for unequal treatment based on statement count
-        val statementsPerEntity = entities.map { it.id to it.statements.size }
-        val avgStatements = if (statementsPerEntity.isNotEmpty()) {
-            statementsPerEntity.map { it.second }.average()
-        } else 0.0
-        
         // Check if liability scores are assigned fairly (if calculated)
         val scoredEntities = entities.filter { it.liabilityScore > 0 }
         val unscoredEntities = entities.filter { it.liabilityScore == 0f && it.statements.isNotEmpty() }
@@ -339,7 +345,7 @@ class ConstitutionBrain(private val context: Context) {
                     ruleId = rule.id,
                     ruleName = rule.name,
                     description = "Evidence extraction result is ambiguous",
-                    severity = ConstitutionViolationSeverity.MEDIUM,
+                    severity = rule.severity,
                     checkType = rule.checkType,
                     affectedEvidenceId = item.id,
                     details = "File '${item.fileName}' processed but yielded very little text content"
