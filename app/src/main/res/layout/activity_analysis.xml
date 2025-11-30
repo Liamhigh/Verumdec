@@ -96,6 +96,14 @@
                         android:layout_marginTop="@dimen/spacing_sm"
                         android:nestedScrollingEnabled="false" />
 
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnViewFullTimeline"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_sm"
+                        android:text="@string/btn_view_full_timeline"
+                        style="@style/Widget.Material3.Button.TextButton" />
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

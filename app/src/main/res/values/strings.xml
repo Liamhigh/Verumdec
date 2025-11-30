@@ -39,6 +39,11 @@
     <string name="msg_complete">Analysis complete</string>
     <string name="msg_no_evidence">No evidence added yet</string>
     <string name="msg_add_evidence_hint">Tap the + button to add evidence files</string>
+    <string name="msg_not_processed">Document not yet processed. Tap Verify to extract text.</string>
+    <string name="msg_confirm_remove_document">Are you sure you want to remove %1$s?</string>
+    <string name="msg_unprocessed_documents">%1$d document(s) have not been processed. Proceed anyway?</string>
+    <string name="msg_add_documents">Tap Add Document to begin verification</string>
+    <string name="msg_no_timeline">No timeline events available</string>
     
     <!-- Report Sections -->
     <string name="report_title">FORENSIC ANALYSIS REPORT</string>
@@ -51,6 +56,7 @@
     <string name="dialog_add_evidence">Add Evidence</string>
     <string name="dialog_case_name">Case Name</string>
     <string name="dialog_confirm_delete">Confirm Delete</string>
+    <string name="dialog_unprocessed_documents">Unprocessed Documents</string>
     
     <!-- Buttons -->
     <string name="btn_ok">OK</string>
@@ -58,9 +64,92 @@
     <string name="btn_delete">Delete</string>
     <string name="btn_save">Save</string>
     <string name="btn_share">Share</string>
+    <string name="btn_add_document">Add Document</string>
+    <string name="btn_verify">Verify</string>
+    <string name="btn_verify_all">Verify All</string>
+    <string name="btn_proceed">Proceed</string>
+    <string name="btn_proceed_anyway">Proceed Anyway</string>
+    <string name="btn_acknowledge">I Understand</string>
+    <string name="btn_dismiss">Dismiss</string>
+    <string name="btn_view_full_timeline">View Full Timeline</string>
     
     <!-- Content descriptions -->
     <string name="cd_app_logo">Verum Omnis Logo</string>
     <string name="cd_add_evidence">Add evidence button</string>
     <string name="cd_delete_evidence">Delete evidence</string>
+    <string name="cd_document_icon">Document type icon</string>
+    <string name="cd_status_icon">Status indicator</string>
+    <string name="cd_remove_document">Remove document</string>
+    <string name="cd_pdf_page">PDF page content</string>
+    <string name="cd_previous_page">Previous page</string>
+    <string name="cd_next_page">Next page</string>
+    <string name="cd_zoom_in">Zoom in</string>
+    <string name="cd_zoom_out">Zoom out</string>
+    <string name="cd_zoom_reset">Reset zoom</string>
+    <string name="cd_share">Share report</string>
+    <string name="cd_alert_icon">Alert icon</string>
+    
+    <!-- Activity Titles -->
+    <string name="title_verify_document">Verify Documents</string>
+    <string name="title_timeline">Evidence Timeline</string>
+    <string name="title_report_viewer">Forensic Report</string>
+    <string name="title_event_details">Event Details</string>
+    
+    <!-- Status Messages -->
+    <string name="status_no_documents">No documents added</string>
+    <string name="status_documents">%1$d/%2$d verified</string>
+    <string name="status_verified">Verified</string>
+    <string name="status_pending">Pending</string>
+    
+    <!-- Timeline -->
+    <string name="timeline_range">%1$s to %2$s</string>
+    <string name="timeline_event_count">%1$d events</string>
+    <string name="timeline_critical_count">%1$d critical</string>
+    <string name="timeline_contradiction_count">%1$d contradictions</string>
+    <string name="no_entities_involved">No entities identified</string>
+    
+    <!-- Filter Labels -->
+    <string name="filter_all">All</string>
+    <string name="filter_critical">Critical</string>
+    <string name="filter_high">High</string>
+    <string name="filter_contradictions">Contradictions</string>
+    <string name="filter_payments">Payments</string>
+    
+    <!-- PDF Viewer -->
+    <string name="page_info">Page %1$d of %2$d</string>
+    <string name="share_report">Share Report</string>
+    <string name="error_no_pdf">No PDF file specified</string>
+    <string name="error_file_not_found">File not found</string>
+    <string name="error_loading_pdf">Error loading PDF: %1$s</string>
+    <string name="error_sharing">Error sharing: %1$s</string>
+    
+    <!-- Constitution Alert Dialog -->
+    <string name="alert_critical">CRITICAL LEGAL ALERT</string>
+    <string name="alert_high">HIGH PRIORITY ALERT</string>
+    <string name="alert_medium">LEGAL NOTICE</string>
+    <string name="alert_low">INFORMATION</string>
+    <string name="alert_contradiction_count">%1$d contradictions detected</string>
+    <string name="alert_critical_count">%1$d critical issues</string>
+    <string name="alert_msg_critical">Critical contradictions have been detected that may significantly impact legal proceedings:</string>
+    <string name="alert_msg_high">High-priority contradictions require immediate attention:</string>
+    <string name="alert_msg_general">The analysis has detected inconsistencies in the evidence that may require further investigation.</string>
+    
+    <!-- Section Headers -->
+    <string name="section_alert_details">Alert Details</string>
+    <string name="section_legal_implications">Legal Implications</string>
+    <string name="section_constitutional_refs">Constitutional References</string>
+    
+    <!-- Legal Implications -->
+    <string name="implication_direct">Direct contradiction detected: Party has made conflicting statements which may indicate intentional misrepresentation.</string>
+    <string name="implication_cross_document">Cross-document inconsistency: Different narratives presented in separate documents may suggest fabrication or selective disclosure.</string>
+    <string name="implication_behavioral">Behavioral pattern detected: Communication patterns suggest potential manipulation or psychological pressure tactics.</string>
+    <string name="implication_missing_evidence">Missing evidence referenced: Documents or evidence mentioned but not provided may indicate withholding of relevant information.</string>
+    <string name="implication_temporal">Timeline inconsistency: Events do not align chronologically, suggesting potential fabrication of dates or sequences.</string>
+    <string name="implication_third_party">Third-party contradiction: Statements are contradicted by other party\'s evidence, indicating possible perjury or misrepresentation.</string>
+    
+    <!-- Constitutional References -->
+    <string name="const_ref_fraud">Civil fraud provisions may apply where intentional misrepresentation has caused damages to the opposing party.</string>
+    <string name="const_ref_manipulation">Evidence of manipulation or coercive communication may be relevant to claims of duress, undue influence, or emotional abuse.</string>
+    <string name="const_ref_discovery">Failure to disclose relevant documents may constitute discovery abuse and may warrant sanctions or adverse inferences.</string>
+    <string name="const_ref_general">The detected inconsistencies should be documented and preserved for potential use in legal proceedings.</string>
 </resources>

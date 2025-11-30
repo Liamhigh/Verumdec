@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme -->
-    <style name="Theme.Verumdec" parent="Theme.Material3.Light.NoActionBar">
+    <!-- Base application theme for dark mode -->
+    <style name="Theme.Verumdec" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
@@ -70,7 +70,7 @@
         <item name="android:textColor">@color/on_primary</item>
     </style>
     
-    <!-- Alert Dialog style -->
+    <!-- Alert Dialog style for dark mode -->
     <style name="Theme.Verumdec.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
         <item name="android:background">@color/surface</item>
     </style>

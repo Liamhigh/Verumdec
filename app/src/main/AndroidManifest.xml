@@ -44,6 +44,27 @@
             android:parentActivityName=".ui.AnalysisActivity"
             android:theme="@style/Theme.Verumdec" />
 
+        <activity
+            android:name=".ui.VerifyDocumentActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/Theme.Verumdec"
+            android:label="@string/title_verify_document" />
+
+        <activity
+            android:name=".ui.EvidenceTimelineActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.AnalysisActivity"
+            android:theme="@style/Theme.Verumdec"
+            android:label="@string/title_timeline" />
+
+        <activity
+            android:name=".ui.ForensicReportViewerActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.AnalysisActivity"
+            android:theme="@style/Theme.Verumdec"
+            android:label="@string/title_report_viewer" />
+
         <!-- File Provider for sharing reports -->
         <provider
             android:name="androidx.core.content.FileProvider"
