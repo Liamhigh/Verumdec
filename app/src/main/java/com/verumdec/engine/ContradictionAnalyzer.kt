@@ -459,12 +459,14 @@ class ContradictionAnalyzer {
      * Calculate severity based on statement types and content.
      */
     private fun calculateSeverity(stmtA: Statement, stmtB: Statement): Severity {
-        // Denial followed by admission is critical - this flips liability
+        // Denial followed by admission is critical - initially denying then admitting
+        // strongly indicates prior deception and maximizes liability score contribution
         if (stmtA.type == StatementType.DENIAL && stmtB.type == StatementType.ADMISSION) {
             return Severity.CRITICAL
         }
         
         // Admission followed by denial is also critical - attempting to retract an admission
+        // suggests awareness of liability and active concealment attempt
         if (stmtA.type == StatementType.ADMISSION && stmtB.type == StatementType.DENIAL) {
             return Severity.CRITICAL
         }
