@@ -10,10 +10,10 @@ import java.util.*
 class ContradictionAnalyzer {
 
     // Negation indicators
-    private val negations = listOf("not", "never", "no", "didn't", "didn't", "wasn't", "won't", "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
+    private val negations = listOf("not", "never", "no", "didn't", "wasn't", "won't", "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
     
-    // Contradiction trigger phrases
-    private val contradictionTriggers = mapOf(
+    // Contradiction trigger phrases - expanded for better coverage
+    private val contradictionTriggers = listOf(
         "deal exists" to "no deal",
         "paid" to "never paid",
         "received" to "never received",
@@ -22,7 +22,23 @@ class ContradictionAnalyzer {
         "signed" to "never signed",
         "promised" to "never promised",
         "true" to "false",
-        "did" to "didn't"
+        "did" to "didn't",
+        "did" to "did not",
+        "was" to "wasn't",
+        "was" to "was not",
+        "have" to "haven't",
+        "have" to "have not",
+        "will" to "won't",
+        "will" to "will not",
+        "paid" to "didn't pay",
+        "paid" to "did not pay",
+        "received" to "didn't receive",
+        "received" to "did not receive",
+        "agreed" to "didn't agree",
+        "agreed" to "did not agree",
+        "yes" to "no",
+        "accept" to "reject",
+        "confirm" to "deny"
     )
 
     /**
@@ -103,7 +119,7 @@ class ContradictionAnalyzer {
     private fun isStatementByEntity(text: String, entity: Entity, evidence: Evidence): Boolean {
         // Check if sender matches
         val sender = evidence.metadata.sender?.lowercase() ?: ""
-        if (entity.emails.any { sender.contains(it) }) return true
+        if (entity.emails.any { sender.contains(it.lowercase()) }) return true
         if (sender.contains(entity.primaryName.lowercase())) return true
         
         // Check for first-person statements with entity context
@@ -136,7 +152,8 @@ class ContradictionAnalyzer {
         val lower = text.lowercase()
         
         return when {
-            negations.any { lower.contains("$it ") && lower.contains("never") } -> StatementType.DENIAL
+            // Check for denial patterns - "never", "didn't", "not", etc. using word boundaries
+            containsNegation(lower) -> StatementType.DENIAL
             lower.contains("i promise") || lower.contains("will ") || lower.contains("shall ") -> StatementType.PROMISE
             lower.contains("admit") || lower.contains("yes i") || lower.contains("i did") -> StatementType.ADMISSION
             lower.contains("claim") || lower.contains("assert") -> StatementType.CLAIM
@@ -219,8 +236,8 @@ class ContradictionAnalyzer {
         val commonKeywords = keywordsA.intersect(keywordsB)
         
         if (commonKeywords.isNotEmpty()) {
-            val hasNegationA = negations.any { textA.contains("$it ") }
-            val hasNegationB = negations.any { textB.contains("$it ") }
+            val hasNegationA = containsNegation(textA)
+            val hasNegationB = containsNegation(textB)
             
             if (hasNegationA != hasNegationB) {
                 return "Contradictory statements about: ${commonKeywords.joinToString(", ")}"
@@ -229,7 +246,7 @@ class ContradictionAnalyzer {
         
         // Check denial vs claim pattern
         if (stmtA.type == StatementType.CLAIM && stmtB.type == StatementType.DENIAL) {
-            if (commonKeywords.size >= 2) {
+            if (commonKeywords.isNotEmpty()) {  // Reduced from >= 2 to improve detection
                 return "Claim contradicted by denial"
             }
         }
@@ -240,6 +257,17 @@ class ContradictionAnalyzer {
         }
         
         return null
+    }
+    
+    /**
+     * Check if text contains any negation word.
+     */
+    private fun containsNegation(text: String): Boolean {
+        return negations.any { negation ->
+            // Check for negation word with word boundaries
+            val pattern = Regex("\\b${Regex.escape(negation)}\\b")
+            pattern.containsMatchIn(text)
+        }
     }
 
     /**
