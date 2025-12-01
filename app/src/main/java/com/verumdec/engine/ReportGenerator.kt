@@ -289,7 +289,7 @@ class ReportGenerator(private val context: Context) {
         drawText("4. Contradiction Analysis", bodyPaint)
         drawText("5. Behavioral Pattern Analysis", bodyPaint)
         drawText("6. Liability Assessment", bodyPaint)
-        drawText("7. Narrative Summary", bodyPaint)
+        drawText("7. Narrative Summary (incl. LEVELER ENGINE Report)", bodyPaint)
         drawText("8. Conclusion", bodyPaint)
 
         // Section 1: Executive Summary
@@ -298,7 +298,7 @@ class ReportGenerator(private val context: Context) {
         addSpace(2f)
         
         drawText("This report presents the findings of a comprehensive forensic analysis", bodyPaint)
-        drawText("conducted using the Verum Omnis Contradiction Engine.", bodyPaint)
+        drawText("conducted using the Verum Omnis Contradiction Engine powered by LEVELER ENGINE.", bodyPaint)
         addSpace()
         drawText("Key Statistics:", subheadingPaint)
         drawText("• Entities Identified: ${report.entities.size}", bodyPaint)
@@ -447,8 +447,15 @@ class ReportGenerator(private val context: Context) {
         addSpace(2f)
         
         drawText("This forensic analysis was conducted using the Verum Omnis Contradiction Engine,", bodyPaint)
-        drawText("an offline, on-device analytical tool designed for legal-grade evidence analysis.", bodyPaint)
+        drawText("powered by the LEVELER ENGINE v1.0 for enhanced semantic analysis.", bodyPaint)
         addSpace()
+        drawText("The LEVELER ENGINE provides:", bodyPaint)
+        drawText("  • Semantic embedding-based contradiction detection", bodyPaint, 10f)
+        drawText("  • Entity profile building with financial figure tracking", bodyPaint, 10f)
+        drawText("  • Linguistic drift and behavioral anomaly analysis", bodyPaint, 10f)
+        drawText("  • Cross-document financial discrepancy detection", bodyPaint, 10f)
+        addSpace()
+        drawText("This is an offline, on-device analytical tool designed for legal-grade evidence analysis.", bodyPaint)
         drawText("The findings presented in this report are based on the evidence provided and", bodyPaint)
         drawText("the analytical algorithms applied. The accuracy depends on the completeness", bodyPaint)
         drawText("and quality of the input evidence.", bodyPaint)

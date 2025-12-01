@@ -19,14 +19,15 @@ class ContradictionEngineTest {
             id = "entity1",
             primaryName = "Test Entity",
             emails = mutableListOf("test@example.com"),
-            phones = mutableListOf(),
+            phoneNumbers = mutableListOf(),
             aliases = mutableListOf()
         )
 
         val evidence = Evidence(
             id = "ev1",
-            fileName = "test.txt",
             type = EvidenceType.TEXT,
+            fileName = "test.txt",
+            filePath = "/path/to/test.txt",
             extractedText = "Test evidence",
             metadata = EvidenceMetadata(sender = "test@example.com"),
             processed = true
@@ -34,8 +35,22 @@ class ContradictionEngineTest {
 
         val contradiction = Contradiction(
             entityId = "entity1",
-            statementA = Statement("entity1", "S1", Date(), "ev1", StatementType.CLAIM, listOf("test")),
-            statementB = Statement("entity1", "S2", Date(), "ev1", StatementType.DENIAL, listOf("test")),
+            statementA = Statement(
+                entityId = "entity1", 
+                text = "S1", 
+                date = Date(), 
+                sourceEvidenceId = "ev1", 
+                type = StatementType.CLAIM, 
+                keywords = listOf("test")
+            ),
+            statementB = Statement(
+                entityId = "entity1", 
+                text = "S2", 
+                date = Date(), 
+                sourceEvidenceId = "ev1", 
+                type = StatementType.DENIAL, 
+                keywords = listOf("test")
+            ),
             type = ContradictionType.DIRECT,
             severity = Severity.CRITICAL,
             description = "Test",
@@ -44,28 +59,27 @@ class ContradictionEngineTest {
 
         val timelineEvent = TimelineEvent(
             id = "te1",
-            entityId = "entity1",
             date = Date(),
             description = "Test event",
-            type = EventType.COMMUNICATION,
-            significance = 5,
-            sourceEvidenceId = "ev1"
+            sourceEvidenceId = "ev1",
+            entityIds = listOf("entity1"),
+            eventType = EventType.COMMUNICATION,
+            significance = Significance.HIGH
         )
 
         val liabilityScore = LiabilityScore(
             entityId = "entity1",
+            overallScore = 80f,
             contradictionScore = 85f,
             behavioralScore = 75f,
-            evidenceScore = 80f,
-            chronologicalScore = 90f,
-            causalScore = 70f,
-            overallScore = 80f
+            evidenceContributionScore = 80f,
+            chronologicalConsistencyScore = 90f,
+            causalResponsibilityScore = 70f
         )
 
         val testCase = Case(
             id = "case1",
             name = "Test Case",
-            description = "Test case for engine",
             evidence = mutableListOf(evidence),
             entities = mutableListOf(entity),
             timeline = mutableListOf(timelineEvent),
@@ -97,7 +111,6 @@ class ContradictionEngineTest {
         val emptyCase = Case(
             id = "empty",
             name = "Empty Case",
-            description = "",
             evidence = mutableListOf(),
             entities = mutableListOf(),
             timeline = mutableListOf(),
@@ -125,25 +138,98 @@ class ContradictionEngineTest {
     @Test
     fun testMultipleContradictionSeverities() {
         // Arrange
-        val entity = Entity("entity1", "Test", mutableListOf(), mutableListOf(), mutableListOf())
-        val evidence = Evidence("ev1", "test.txt", EvidenceType.TEXT, "test", EvidenceMetadata(), processed = true)
+        val entity = Entity(
+            id = "entity1", 
+            primaryName = "Test",
+            aliases = mutableListOf(),
+            emails = mutableListOf(),
+            phoneNumbers = mutableListOf()
+        )
+        val evidence = Evidence(
+            id = "ev1",
+            type = EvidenceType.TEXT,
+            fileName = "test.txt",
+            filePath = "test.txt",
+            extractedText = "test",
+            metadata = EvidenceMetadata(),
+            processed = true
+        )
         
-        val stmt1 = Statement("entity1", "S1", Date(), "ev1", StatementType.CLAIM, listOf("test"))
-        val stmt2 = Statement("entity1", "S2", Date(), "ev1", StatementType.CLAIM, listOf("test"))
-        val stmt3 = Statement("entity1", "S3", Date(), "ev1", StatementType.CLAIM, listOf("test"))
-        val stmt4 = Statement("entity1", "S4", Date(), "ev1", StatementType.CLAIM, listOf("test"))
+        val stmt1 = Statement(
+            entityId = "entity1",
+            text = "S1",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.CLAIM,
+            keywords = listOf("test")
+        )
+        val stmt2 = Statement(
+            entityId = "entity1",
+            text = "S2",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.CLAIM,
+            keywords = listOf("test")
+        )
+        val stmt3 = Statement(
+            entityId = "entity1",
+            text = "S3",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.CLAIM,
+            keywords = listOf("test")
+        )
+        val stmt4 = Statement(
+            entityId = "entity1",
+            text = "S4",
+            date = Date(),
+            sourceEvidenceId = "ev1",
+            type = StatementType.CLAIM,
+            keywords = listOf("test")
+        )
 
         val contradictions = mutableListOf(
-            Contradiction("entity1", stmt1, stmt2, ContradictionType.DIRECT, Severity.CRITICAL, "C1", "I1"),
-            Contradiction("entity1", stmt2, stmt3, ContradictionType.DIRECT, Severity.HIGH, "C2", "I2"),
-            Contradiction("entity1", stmt3, stmt4, ContradictionType.DIRECT, Severity.MEDIUM, "C3", "I3"),
-            Contradiction("entity1", stmt4, stmt1, ContradictionType.DIRECT, Severity.LOW, "C4", "I4")
+            Contradiction(
+                entityId = "entity1",
+                statementA = stmt1,
+                statementB = stmt2,
+                type = ContradictionType.DIRECT,
+                severity = Severity.CRITICAL,
+                description = "C1",
+                legalImplication = "I1"
+            ),
+            Contradiction(
+                entityId = "entity1",
+                statementA = stmt2,
+                statementB = stmt3,
+                type = ContradictionType.DIRECT,
+                severity = Severity.HIGH,
+                description = "C2",
+                legalImplication = "I2"
+            ),
+            Contradiction(
+                entityId = "entity1",
+                statementA = stmt3,
+                statementB = stmt4,
+                type = ContradictionType.DIRECT,
+                severity = Severity.MEDIUM,
+                description = "C3",
+                legalImplication = "I3"
+            ),
+            Contradiction(
+                entityId = "entity1",
+                statementA = stmt4,
+                statementB = stmt1,
+                type = ContradictionType.DIRECT,
+                severity = Severity.LOW,
+                description = "C4",
+                legalImplication = "I4"
+            )
         )
 
         val testCase = Case(
             id = "case1",
             name = "Test Case",
-            description = "",
             evidence = mutableListOf(evidence),
             entities = mutableListOf(entity),
             timeline = mutableListOf(),
