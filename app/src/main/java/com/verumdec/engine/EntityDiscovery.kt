@@ -239,7 +239,7 @@ class EntityDiscovery {
                 primaryName = primaryName,
                 aliases = aliases.distinct().toMutableList(),
                 emails = emails.distinct().toMutableList(),
-                phoneNumbers = phoneNumbers.distinct().toMutableList(),
+                phones = phoneNumbers.distinct().toMutableList(),
                 mentions = mentions
             )
         }

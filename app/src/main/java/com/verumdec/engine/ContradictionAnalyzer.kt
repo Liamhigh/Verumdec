@@ -4,15 +4,30 @@ import com.verumdec.data.*
 import java.util.*
 
 /**
- * Contradiction Analysis Engine
+ * Contradiction Analysis Engine (Gold Standard Implementation)
  * Detects contradictions between statements and across documents.
+ * 
+ * Based on the Verum Omnis forensic doctrine, this engine:
+ * - Extracts claims with proper classification (denial, promise, admission, etc.)
+ * - Detects direct contradictions (A says X, then A says NOT X)
+ * - Detects cross-document contradictions
+ * - Detects temporal/timeline contradictions
+ * - Detects third-party contradictions
+ * - Detects missing evidence contradictions
+ * - Assigns severity scores (Critical, High, Medium, Low)
+ * - Generates legal implications for each contradiction
  */
 class ContradictionAnalyzer {
 
-    // Negation indicators
-    private val negations = listOf("not", "never", "no", "didn't", "wasn't", "won't", "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
+    // Negation indicators - comprehensive list for better contradiction detection
+    private val negations = listOf(
+        "not", "never", "no", "didn't", "wasn't", "won't", "don't", "can't", 
+        "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't",
+        "nobody", "nothing", "nowhere", "none", "neither", "nor", "false",
+        "denied", "denies", "deny", "refuses", "refused", "reject", "rejected"
+    )
     
-    // Contradiction trigger phrases - expanded for better coverage
+    // Contradiction trigger phrases - expanded with gold standard patterns
     private val contradictionTriggers = listOf(
         "deal exists" to "no deal",
         "paid" to "never paid",
@@ -38,7 +53,27 @@ class ContradictionAnalyzer {
         "agreed" to "did not agree",
         "yes" to "no",
         "accept" to "reject",
-        "confirm" to "deny"
+        "confirm" to "deny",
+        "exists" to "doesn't exist",
+        "happened" to "never happened",
+        "said" to "never said",
+        "knew" to "didn't know",
+        "aware" to "unaware",
+        "involved" to "not involved",
+        "present" to "absent",
+        "true" to "lie",
+        "honest" to "dishonest",
+        "admitted" to "denied"
+    )
+    
+    // Slip-up admission patterns (Gold Standard feature)
+    private val slipUpPatterns = listOf(
+        Regex("okay[,\\s]+(fine|alright|maybe)", RegexOption.IGNORE_CASE),
+        Regex("well[,\\s]+(technically|actually|maybe)", RegexOption.IGNORE_CASE),
+        Regex("i\\s+(suppose|guess|admit)", RegexOption.IGNORE_CASE),
+        Regex("(sort|kind)\\s+of", RegexOption.IGNORE_CASE),
+        Regex("yes[,\\s]+but", RegexOption.IGNORE_CASE),
+        Regex("i\\s+might\\s+have", RegexOption.IGNORE_CASE)
     )
 
     /**
@@ -146,7 +181,8 @@ class ContradictionAnalyzer {
     }
 
     /**
-     * Classify a statement by type.
+     * Classify a statement by type (Gold Standard Implementation).
+     * Uses comprehensive pattern matching for accurate claim classification.
      */
     private fun classifyStatement(text: String): StatementType {
         val lower = text.lowercase()
@@ -154,11 +190,37 @@ class ContradictionAnalyzer {
         return when {
             // Check for denial patterns - "never", "didn't", "not", etc. using word boundaries
             containsNegation(lower) -> StatementType.DENIAL
-            lower.contains("i promise") || lower.contains("will ") || lower.contains("shall ") -> StatementType.PROMISE
-            lower.contains("admit") || lower.contains("yes i") || lower.contains("i did") -> StatementType.ADMISSION
-            lower.contains("claim") || lower.contains("assert") -> StatementType.CLAIM
-            lower.contains("accuse") || lower.contains("fault") -> StatementType.ACCUSATION
-            lower.contains("because") || lower.contains("reason") -> StatementType.EXPLANATION
+            
+            // Check for slip-up admissions (Gold Standard feature)
+            slipUpPatterns.any { it.containsMatchIn(lower) } -> StatementType.ADMISSION
+            
+            // Check for promise patterns
+            lower.contains("i promise") || lower.contains("will ") || 
+            lower.contains("shall ") || lower.contains("going to ") ||
+            lower.contains("commit to") || lower.contains("guarantee") -> StatementType.PROMISE
+            
+            // Check for admission patterns
+            lower.contains("admit") || lower.contains("yes i") || 
+            lower.contains("i did") || lower.contains("confess") ||
+            lower.contains("acknowledge") || lower.contains("i accept") ||
+            lower.contains("guilty") || lower.contains("i was wrong") -> StatementType.ADMISSION
+            
+            // Check for claim patterns
+            lower.contains("claim") || lower.contains("assert") ||
+            lower.contains("state that") || lower.contains("i maintain") ||
+            lower.contains("the fact is") || lower.contains("it is true that") -> StatementType.CLAIM
+            
+            // Check for accusation patterns  
+            lower.contains("accuse") || lower.contains("fault") ||
+            lower.contains("blame") || lower.contains("responsible for") ||
+            lower.contains("you did") || lower.contains("he did") ||
+            lower.contains("she did") || lower.contains("they did") -> StatementType.ACCUSATION
+            
+            // Check for explanation patterns
+            lower.contains("because") || lower.contains("reason") ||
+            lower.contains("explanation") || lower.contains("the thing is") ||
+            lower.contains("what happened was") || lower.contains("let me explain") -> StatementType.EXPLANATION
+            
             else -> StatementType.CLAIM
         }
     }

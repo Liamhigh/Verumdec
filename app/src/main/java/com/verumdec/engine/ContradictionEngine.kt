@@ -8,8 +8,47 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Main Contradiction Engine
+ * Main Contradiction Engine (Gold Standard Implementation)
  * Orchestrates the full forensic analysis pipeline.
+ * 
+ * Based on the Verum Omnis forensic doctrine, this engine:
+ * 
+ * Stage 1: Evidence Ingestion (Offline)
+ * - PDFs, Images, Screenshots, WhatsApp exports, Emails
+ * - Extracts text, metadata, timestamps, sender/receiver IDs
+ * 
+ * Stage 2: Entity Discovery
+ * - Names, Emails, Phone numbers, Company names, Bank accounts
+ * - Clusters by frequency and co-occurrence
+ * 
+ * Stage 3: Timeline Generation
+ * - Normalizes all timestamps ("Last Friday" → actual date)
+ * - Creates master chronological timeline
+ * 
+ * Stage 4: Contradiction Analysis (The Truth Engine)
+ * - Direct contradictions (A says X, then NOT X)
+ * - Cross-document contradictions
+ * - Behavioral contradictions
+ * - Missing-evidence contradictions
+ * 
+ * Stage 5: Behavioral Analysis
+ * - 12+ behavioral pattern types detected
+ * - Gaslighting, Deflection, Pressure tactics
+ * - Slip-up admissions, Passive admissions
+ * 
+ * Stage 6: Liability Matrix (Mathematical Scoring)
+ * - Weighted scoring algorithm
+ * - Produces percentage liability per entity
+ * 
+ * Stage 7: Narrative Generation
+ * - Objective narration, contradiction commentary
+ * - Deductive logic, causal chain analysis
+ * 
+ * Stage 8: Sealed PDF Report
+ * - SHA-512 cryptographic hash
+ * - "Patent Pending • Verum Omnis" watermark
+ * 
+ * All processing is 100% offline, stateless, and forensics-grade.
  */
 class ContradictionEngine(private val context: Context) {
 

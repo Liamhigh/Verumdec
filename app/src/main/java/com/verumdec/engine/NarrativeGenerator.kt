@@ -5,8 +5,18 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Narrative Generator
+ * Narrative Generator (Gold Standard Implementation)
  * Builds comprehensive legal narratives from analysis results.
+ * 
+ * Based on the Verum Omnis forensic doctrine, generates:
+ * - Objective chronological narration (no emotion, no accusation)
+ * - Contradiction commentary with flags at divergence points
+ * - Behavioral pattern analysis with manipulation detection
+ * - Deductive logic layer explaining WHY contradictions matter
+ * - Causal chain layer linking events into cause→effect
+ * - Final summary with liability assessment
+ * 
+ * The output is designed to be consumed by AI systems for legal strategy generation.
  */
 class NarrativeGenerator {
 
@@ -183,22 +193,23 @@ class NarrativeGenerator {
     }
 
     /**
-     * Get description for behavioral pattern type.
+     * Get description for behavioral pattern type (Gold Standard Implementation).
+     * Enhanced descriptions based on forensic psychology patterns.
      */
     private fun getBehaviorDescription(type: BehaviorType): String {
         return when (type) {
-            BehaviorType.GASLIGHTING -> "Attempts to make the other party question their own perception of reality."
-            BehaviorType.DEFLECTION -> "Redirecting attention away from the relevant issues."
-            BehaviorType.PRESSURE_TACTICS -> "Using urgency or pressure to force decisions."
-            BehaviorType.FINANCIAL_MANIPULATION -> "Using financial leverage or promises to manipulate."
-            BehaviorType.EMOTIONAL_MANIPULATION -> "Exploiting emotional connections for advantage."
-            BehaviorType.SUDDEN_WITHDRAWAL -> "Abrupt cessation of communication or engagement."
-            BehaviorType.GHOSTING -> "Extended periods of ignoring communications."
-            BehaviorType.OVER_EXPLAINING -> "Excessive justification that may indicate deception."
-            BehaviorType.SLIP_UP_ADMISSION -> "Accidental admissions within denials or explanations."
-            BehaviorType.DELAYED_RESPONSE -> "Strategic timing of responses, often after receiving something."
-            BehaviorType.BLAME_SHIFTING -> "Attempting to transfer responsibility to others."
-            BehaviorType.PASSIVE_ADMISSION -> "Indirect acknowledgments suggesting awareness of wrongdoing."
+            BehaviorType.GASLIGHTING -> "Attempts to make the other party question their own perception of reality. This is a serious manipulation tactic that indicates intentional deception."
+            BehaviorType.DEFLECTION -> "Redirecting attention away from the relevant issues. Often used to avoid accountability and change the subject when confronted."
+            BehaviorType.PRESSURE_TACTICS -> "Using urgency or pressure to force decisions. May indicate attempt to bypass due diligence or rational decision-making."
+            BehaviorType.FINANCIAL_MANIPULATION -> "Using financial leverage or promises to manipulate. Often associated with fraud or misrepresentation of financial matters."
+            BehaviorType.EMOTIONAL_MANIPULATION -> "Exploiting emotional connections for advantage. Uses guilt, obligation, or relationship leverage to influence behavior."
+            BehaviorType.SUDDEN_WITHDRAWAL -> "Abrupt cessation of communication or engagement. Often occurs after receiving benefit or when confronted with evidence."
+            BehaviorType.GHOSTING -> "Extended periods of ignoring communications. May indicate avoidance of accountability or attempt to wait out legal deadlines."
+            BehaviorType.OVER_EXPLAINING -> "Excessive justification that may indicate deception. This is a classic fraud red flag - honest accounts require less explanation."
+            BehaviorType.SLIP_UP_ADMISSION -> "Accidental admissions within denials or explanations. These 'slip-ups' often reveal truth that contradicts the stated position."
+            BehaviorType.DELAYED_RESPONSE -> "Strategic timing of responses, often after receiving something. May indicate planning time for fabricated responses."
+            BehaviorType.BLAME_SHIFTING -> "Attempting to transfer responsibility to others. Indicates unwillingness to accept accountability for actions."
+            BehaviorType.PASSIVE_ADMISSION -> "Indirect acknowledgments suggesting awareness of wrongdoing. Statements like 'I thought I was in the clear' reveal prior knowledge."
         }
     }
 
