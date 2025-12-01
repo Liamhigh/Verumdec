@@ -247,12 +247,12 @@ class BehavioralAnalyzerTest {
         )
 
         val now = Date()
-        val oneWeekAgo = Date(now.time - 8 * 24 * 60 * 60 * 1000L) // 8 days ago
-        val twoWeeksAgo = Date(now.time - 15 * 24 * 60 * 60 * 1000L) // 15 days ago
+        val oneWeekAgo = Date(now.time - 10 * 24 * 60 * 60 * 1000L) // 10 days ago
+        val threeWeeksAgo = Date(now.time - 21 * 24 * 60 * 60 * 1000L) // 21 days ago (gap of 11 days > 7 days)
 
         val timeline = listOf(
             TimelineEvent(
-                date = twoWeeksAgo,
+                date = threeWeeksAgo,
                 description = "Communication from Grace",
                 sourceEvidenceId = "ev1",
                 entityIds = listOf("entity1"),
@@ -272,7 +272,7 @@ class BehavioralAnalyzerTest {
 
         // Assert
         val ghostingPatterns = patterns.filter { it.type == BehaviorType.GHOSTING }
-        assertTrue("Should detect ghosting pattern from timeline gaps", ghostingPatterns.isNotEmpty())
+        assertTrue("Should detect ghosting pattern from timeline gaps (>7 days)", ghostingPatterns.isNotEmpty())
     }
 
     @Test

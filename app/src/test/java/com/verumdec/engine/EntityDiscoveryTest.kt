@@ -21,12 +21,17 @@ class EntityDiscoveryTest {
 
     @Test
     fun testEmailExtraction() {
-        // Arrange
+        // Arrange - Need multiple mentions for entity to be discovered (threshold is 2)
         val evidence = Evidence(
             id = "ev1",
             fileName = "email.txt",
             type = EvidenceType.TEXT,
-            extractedText = "Please contact john.doe@example.com for more information. You can also reach jane.smith@company.org.",
+            extractedText = """
+                Please contact john.doe@example.com for more information.
+                Send your response to john.doe@example.com as soon as possible.
+                Also reach out to jane.smith@company.org for support.
+                For billing, contact jane.smith@company.org.
+            """.trimIndent(),
             metadata = EvidenceMetadata()
         )
 
@@ -34,7 +39,7 @@ class EntityDiscoveryTest {
         val entities = discovery.discoverEntities(listOf(evidence))
 
         // Assert
-        assertTrue("Should discover entities from emails", entities.isNotEmpty())
+        assertTrue("Should discover entities from emails (with >= 2 mentions)", entities.isNotEmpty())
         assertTrue("Should extract email addresses", 
             entities.any { it.emails.contains("john.doe@example.com") || it.emails.contains("jane.smith@company.org") })
     }
@@ -95,12 +100,23 @@ class EntityDiscoveryTest {
 
     @Test
     fun testEmailMetadataExtraction() {
-        // Arrange
-        val evidence = Evidence(
+        // Arrange - Need multiple evidence pieces to have >= 2 mentions
+        val evidence1 = Evidence(
             id = "ev1",
-            fileName = "email.eml",
+            fileName = "email1.eml",
             type = EvidenceType.EMAIL,
-            extractedText = "This is the email body.",
+            extractedText = "This is the first email body.",
+            metadata = EvidenceMetadata(
+                sender = "sender@example.com",
+                receiver = "receiver@example.com"
+            )
+        )
+        
+        val evidence2 = Evidence(
+            id = "ev2",
+            fileName = "email2.eml",
+            type = EvidenceType.EMAIL,
+            extractedText = "This is the second email body.",
             metadata = EvidenceMetadata(
                 sender = "sender@example.com",
                 receiver = "receiver@example.com"
@@ -108,10 +124,10 @@ class EntityDiscoveryTest {
         )
 
         // Act
-        val entities = discovery.discoverEntities(listOf(evidence))
+        val entities = discovery.discoverEntities(listOf(evidence1, evidence2))
 
         // Assert
-        assertTrue("Should extract entities from metadata", entities.isNotEmpty())
+        assertTrue("Should extract entities from metadata (with >= 2 mentions)", entities.isNotEmpty())
         val senderEntity = entities.find { it.emails.contains("sender@example.com") }
         val receiverEntity = entities.find { it.emails.contains("receiver@example.com") }
         
@@ -362,9 +378,10 @@ class EntityDiscoveryTest {
     @Test
     fun testEmailNameFormatExtraction() {
         // Arrange - Email in "Name <email>" format
-        val evidence = Evidence(
+        // Need multiple mentions for entity to be discovered
+        val evidence1 = Evidence(
             id = "ev1",
-            fileName = "email.eml",
+            fileName = "email1.eml",
             type = EvidenceType.EMAIL,
             extractedText = "Email body content here.",
             metadata = EvidenceMetadata(
@@ -372,11 +389,21 @@ class EntityDiscoveryTest {
             )
         )
 
+        val evidence2 = Evidence(
+            id = "ev2",
+            fileName = "email2.eml",
+            type = EvidenceType.EMAIL,
+            extractedText = "Another email body.",
+            metadata = EvidenceMetadata(
+                sender = "John Doe <john.doe@example.com>"
+            )
+        )
+
         // Act
-        val entities = discovery.discoverEntities(listOf(evidence))
+        val entities = discovery.discoverEntities(listOf(evidence1, evidence2))
 
         // Assert
-        assertTrue("Should discover entity from formatted email", entities.isNotEmpty())
+        assertTrue("Should discover entity from formatted email (with >= 2 mentions)", entities.isNotEmpty())
         // Should extract "John Doe" as the name
         val foundEntity = entities.find { 
             it.primaryName.contains("John", ignoreCase = true) || 
