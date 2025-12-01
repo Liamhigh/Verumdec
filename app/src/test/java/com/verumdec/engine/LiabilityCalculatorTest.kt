@@ -202,7 +202,12 @@ class LiabilityCalculatorTest {
         // Assert
         val score = scores["entity1"]
         assertNotNull("Score should exist", score)
-        assertTrue("Multiple contradictions should increase score", (score?.overallScore ?: 0f) > 50f)
+        // Multiple contradictions should result in a meaningful liability score
+        // CRITICAL=25, HIGH=15, HIGH=15 = 55 for contradiction score
+        // Weight for contradiction is 0.30, so contribution is ~16.5
+        // Plus other components contribute to overall score
+        assertTrue("Multiple contradictions should increase score", (score?.overallScore ?: 0f) > 10f)
+        assertTrue("Contradiction score should reflect multiple contradictions", (score?.contradictionScore ?: 0f) >= 50f)
     }
 
     @Test

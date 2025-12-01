@@ -59,8 +59,8 @@ class EntityDiscovery {
                         val builder = entityMap.getOrPut(nearbyName.lowercase()) {
                             MutableEntityBuilder(primaryName = nearbyName)
                         }
-                        if (phone !in builder.phoneNumbers) {
-                            builder.phoneNumbers.add(phone)
+                        if (phone !in builder.phones) {
+                            builder.phones.add(phone)
                         }
                     }
                 }
@@ -186,7 +186,7 @@ class EntityDiscovery {
                     current.aliases.add(other.primaryName)
                     current.aliases.addAll(other.aliases)
                     current.emails.addAll(other.emails)
-                    current.phoneNumbers.addAll(other.phoneNumbers)
+                    current.phones.addAll(other.phones)
                     current.mentions += other.mentions
                     used.add(j)
                 }
@@ -206,7 +206,7 @@ class EntityDiscovery {
         if (a.emails.any { it in b.emails }) return true
         
         // Same phone
-        if (a.phoneNumbers.any { it in b.phoneNumbers }) return true
+        if (a.phones.any { it in b.phones }) return true
         
         // Name is substring of other (e.g., "John" and "John Smith")
         val aName = a.primaryName.lowercase()
@@ -231,7 +231,7 @@ class EntityDiscovery {
         val primaryName: String,
         val aliases: MutableList<String> = mutableListOf(),
         val emails: MutableList<String> = mutableListOf(),
-        val phoneNumbers: MutableList<String> = mutableListOf(),
+        val phones: MutableList<String> = mutableListOf(),
         var mentions: Int = 0
     ) {
         fun toEntity(): Entity {
@@ -239,7 +239,7 @@ class EntityDiscovery {
                 primaryName = primaryName,
                 aliases = aliases.distinct().toMutableList(),
                 emails = emails.distinct().toMutableList(),
-                phoneNumbers = phoneNumbers.distinct().toMutableList(),
+                phones = phones.distinct().toMutableList(),
                 mentions = mentions
             )
         }
@@ -249,7 +249,7 @@ class EntityDiscovery {
                 primaryName = primaryName,
                 aliases = aliases.toMutableList(),
                 emails = emails.toMutableList(),
-                phoneNumbers = phoneNumbers.toMutableList(),
+                phones = phones.toMutableList(),
                 mentions = mentions
             )
         }
