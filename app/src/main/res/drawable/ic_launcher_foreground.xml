@@ -3,7 +3,48 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    
+    <!-- Verum Omnis Logo: Shield with VO monogram representing forensic truth analysis -->
+    
+    <!-- Shield outline - represents security and protection of truth -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,31L33,40v12c0,11.1 7.68,21.48 18,24 10.32,-2.52 18,-12.9 18,-24V40l-18,-8zM54,53.98h14c-1.06,8.24 -6.56,15.58 -14,17.88V54H40V43.6l14,-6.22v16.6z"/>
+        android:pathData="M54,18L27,28v16c0,14.5 10,28 27,32 17,-4 27,-17.5 27,-32V28L54,18zM54,72c-13,-3.5 -21,-14 -21,-26V32l21,-8 21,8v14c0,12 -8,22.5 -21,26z"/>
+    
+    <!-- Inner shield fill - subtle depth -->
+    <path
+        android:fillColor="#E8EAF6"
+        android:fillAlpha="0.3"
+        android:pathData="M54,24L33,32v14c0,12 8,22.5 21,26 13,-3.5 21,-14 21,-26V32L54,24z"/>
+    
+    <!-- Letter V - left stroke -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M42,38l10,22 2,-4.4L46,38z"/>
+    
+    <!-- Letter V - right stroke -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,55.6l2,4.4L64,38h-4z"/>
+    
+    <!-- Letter O - outer circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,49m-9,0a9,9 0,1 1,18 0a9,9 0,1 1,-18 0"/>
+    
+    <!-- Letter O - inner circle (cutout effect) -->
+    <path
+        android:fillColor="#1A237E"
+        android:pathData="M54,49m-5,0a5,5 0,1 1,10 0a5,5 0,1 1,-10 0"/>
+    
+    <!-- Connecting line element - represents analysis/connections -->
+    <path
+        android:fillColor="#00ACC1"
+        android:strokeWidth="0"
+        android:pathData="M48,62h12v2h-12z"/>
+    
+    <!-- Small truth indicator dot -->
+    <path
+        android:fillColor="#00ACC1"
+        android:pathData="M54,66m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
 </vector>
