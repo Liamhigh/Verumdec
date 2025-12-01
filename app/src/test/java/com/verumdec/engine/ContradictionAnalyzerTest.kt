@@ -114,6 +114,53 @@ class ContradictionAnalyzerTest {
     }
 
     @Test
+    fun testAdmissionFollowedByDenial() {
+        // Arrange - This tests the newly added case where someone admits something then denies it
+        val entity = Entity(
+            id = "entity1",
+            primaryName = "Michael Brown",
+            emails = mutableListOf("michael@example.com"),
+            phones = mutableListOf(),
+            aliases = mutableListOf()
+        )
+
+        val evidence1 = Evidence(
+            id = "ev1",
+            fileName = "statement1.txt",
+            type = EvidenceType.TEXT,
+            extractedText = "I admit that I took the money from the account.",
+            metadata = EvidenceMetadata(
+                sender = "michael@example.com",
+                creationDate = Date(System.currentTimeMillis() - 2000000)
+            )
+        )
+
+        val evidence2 = Evidence(
+            id = "ev2",
+            fileName = "statement2.txt",
+            type = EvidenceType.TEXT,
+            extractedText = "I never took any money. That is a lie.",
+            metadata = EvidenceMetadata(
+                sender = "michael@example.com",
+                creationDate = Date()
+            )
+        )
+
+        // Act
+        val contradictions = analyzer.analyzeContradictions(
+            listOf(evidence1, evidence2),
+            listOf(entity),
+            emptyList()
+        )
+
+        // Assert - Admission followed by denial should be CRITICAL
+        assertTrue("Should detect admission followed by denial", contradictions.isNotEmpty())
+        val criticalContradictions = contradictions.filter { it.severity == Severity.CRITICAL }
+        assertTrue("Admission followed by denial should be CRITICAL (attempting to retract)", 
+            criticalContradictions.isNotEmpty())
+    }
+
+    @Test
     fun testCrossDocumentContradiction() {
         // Arrange
         val entity = Entity(

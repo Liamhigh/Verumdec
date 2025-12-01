@@ -235,10 +235,11 @@ class ContradictionAnalyzer {
         val keywordsB = stmtB.keywords.toSet()
         val commonKeywords = keywordsA.intersect(keywordsB)
         
+        // Calculate negation presence for both statements
+        val hasNegationA = containsNegation(textA)
+        val hasNegationB = containsNegation(textB)
+        
         if (commonKeywords.isNotEmpty()) {
-            val hasNegationA = containsNegation(textA)
-            val hasNegationB = containsNegation(textB)
-            
             if (hasNegationA != hasNegationB) {
                 return "Contradictory statements about: ${commonKeywords.joinToString(", ")}"
             }
@@ -253,6 +254,20 @@ class ContradictionAnalyzer {
         if (stmtA.type == StatementType.DENIAL && stmtB.type == StatementType.ADMISSION) {
             if (commonKeywords.isNotEmpty()) {
                 return "Denial followed by admission"
+            }
+        }
+        
+        // Check admission vs denial pattern (inverse of above - equally critical)
+        if (stmtA.type == StatementType.ADMISSION && stmtB.type == StatementType.DENIAL) {
+            if (commonKeywords.isNotEmpty()) {
+                return "Admission followed by denial"
+            }
+        }
+        
+        // Check claim vs claim with contradictory content
+        if (stmtA.type == StatementType.CLAIM && stmtB.type == StatementType.CLAIM) {
+            if (commonKeywords.size >= 2 && (hasNegationA != hasNegationB)) {
+                return "Contradictory claims on same subject: ${commonKeywords.joinToString(", ")}"
             }
         }
         
@@ -444,19 +459,36 @@ class ContradictionAnalyzer {
      * Calculate severity based on statement types and content.
      */
     private fun calculateSeverity(stmtA: Statement, stmtB: Statement): Severity {
-        // Denial followed by admission is critical
+        // Denial followed by admission is critical - initially denying then admitting
+        // strongly indicates prior deception and maximizes liability score contribution
         if (stmtA.type == StatementType.DENIAL && stmtB.type == StatementType.ADMISSION) {
             return Severity.CRITICAL
         }
         
-        // Claim vs denial is high
+        // Admission followed by denial is also critical - attempting to retract an admission
+        // suggests awareness of liability and active concealment attempt
+        if (stmtA.type == StatementType.ADMISSION && stmtB.type == StatementType.DENIAL) {
+            return Severity.CRITICAL
+        }
+        
+        // Claim vs denial is high - dishonest intent likely
         if ((stmtA.type == StatementType.CLAIM && stmtB.type == StatementType.DENIAL) ||
             (stmtA.type == StatementType.DENIAL && stmtB.type == StatementType.CLAIM)) {
             return Severity.HIGH
         }
         
-        // Promise broken is medium
-        if (stmtA.type == StatementType.PROMISE) {
+        // Promise followed by denial is high - breach of commitment
+        if (stmtA.type == StatementType.PROMISE && stmtB.type == StatementType.DENIAL) {
+            return Severity.HIGH
+        }
+        
+        // Promise broken or promise with contradicting claim is medium
+        if (stmtA.type == StatementType.PROMISE || stmtB.type == StatementType.PROMISE) {
+            return Severity.MEDIUM
+        }
+        
+        // Accusation followed by admission is medium - may indicate forced admission
+        if (stmtA.type == StatementType.ACCUSATION && stmtB.type == StatementType.ADMISSION) {
             return Severity.MEDIUM
         }
         
