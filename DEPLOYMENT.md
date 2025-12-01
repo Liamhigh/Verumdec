@@ -339,8 +339,14 @@ To enable signed APK builds in GitHub Actions, configure the following repositor
 
 2. **Convert Keystore to Base64**:
    ```bash
-   base64 -i verumdec.keystore | pbcopy  # macOS
-   base64 verumdec.keystore              # Linux (copy output)
+   # macOS (copies to clipboard)
+   base64 -i verumdec.keystore | pbcopy
+   
+   # Linux with xclip (copies to clipboard)
+   base64 verumdec.keystore | xclip -selection clipboard
+   
+   # Linux without xclip (save to file, then copy manually)
+   base64 verumdec.keystore > keystore_base64.txt
    ```
 
 3. **Add GitHub Secrets** (Settings → Secrets and variables → Actions):
