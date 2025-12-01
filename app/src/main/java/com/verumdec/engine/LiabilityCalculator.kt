@@ -26,6 +26,9 @@ class LiabilityCalculator {
         "causal" to 0.15f
     )
     
+    // Default score for unrecognized behavior types (minimal impact)
+    private val DEFAULT_BEHAVIORAL_SCORE = 5f
+    
     // Severity multipliers for behavioral patterns (Gold Standard)
     private val behaviorSeverityMultipliers = mapOf(
         BehaviorType.GASLIGHTING to 20f,
@@ -155,7 +158,7 @@ class LiabilityCalculator {
         var score = 0f
         
         for (pattern in patterns) {
-            val baseScore = behaviorSeverityMultipliers[pattern.type] ?: 5f
+            val baseScore = behaviorSeverityMultipliers[pattern.type] ?: DEFAULT_BEHAVIORAL_SCORE
             
             // Multiply by severity (Gold Standard severity weighting)
             score += baseScore * when (pattern.severity) {

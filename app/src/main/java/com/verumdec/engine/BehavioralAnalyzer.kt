@@ -156,9 +156,11 @@ class BehavioralAnalyzer {
         }
         
         if (stressInstances.size >= 2) {
+            // Note: Using DEFLECTION as stress markers often indicate evasive/deflective behavior.
+            // Future improvement: Add BehaviorType.STRESS_MARKERS for more specific classification.
             detectedPatterns.add(BehavioralPattern(
                 entityId = entityId,
-                type = BehaviorType.DEFLECTION, // Use deflection as closest match
+                type = BehaviorType.DEFLECTION,
                 instances = stressInstances.distinct().take(10),
                 firstDetectedAt = Date(),
                 severity = when {
@@ -220,9 +222,11 @@ class BehavioralAnalyzer {
         }
         
         if (avoidanceInstances.size >= 2) {
+            // Note: Using GHOSTING as avoidance patterns often lead to or indicate ghosting behavior.
+            // Future improvement: Add BehaviorType.AVOIDANCE for more specific classification.
             detectedPatterns.add(BehavioralPattern(
                 entityId = entityId,
-                type = BehaviorType.GHOSTING, // Avoidance is similar to ghosting behavior
+                type = BehaviorType.GHOSTING,
                 instances = avoidanceInstances.distinct().take(10),
                 firstDetectedAt = Date(),
                 severity = when {
