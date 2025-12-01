@@ -97,7 +97,7 @@ class LinguisticDriftDetector {
         
         for (speaker in statementIndex.getSpeakers()) {
             val statements = statementIndex.getStatementsBySpeaker(speaker)
-                .sortedBy { it.timestamp ?: 0L }
+                .sortedBy { it.timestampMillis ?: 0L }
             
             if (statements.size < 2) continue
             
@@ -446,7 +446,7 @@ class LinguisticDriftDetector {
         // Update sentiment trend
         behavioralProfile.sentimentTrend.clear()
         statements.forEach { statement ->
-            statement.timestamp?.let { ts ->
+            statement.timestampMillis?.let { ts ->
                 behavioralProfile.sentimentTrend.add(
                     SentimentDataPoint(ts, statement.sentiment, statement.id)
                 )
@@ -456,7 +456,7 @@ class LinguisticDriftDetector {
         // Update certainty trend
         behavioralProfile.certaintyTrend.clear()
         statements.forEach { statement ->
-            statement.timestamp?.let { ts ->
+            statement.timestampMillis?.let { ts ->
                 behavioralProfile.certaintyTrend.add(
                     CertaintyDataPoint(ts, statement.certainty, statement.id)
                 )

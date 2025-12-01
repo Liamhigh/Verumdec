@@ -68,12 +68,12 @@ class EntityContradictionDetector {
             speakerStatements.forEach { statement ->
                 profile.statementIds.add(statement.id)
                 profile.documentIds.add(statement.documentId)
-                statement.timestamp?.let { profile.timelineFootprint.add(it) }
+                statement.timestampMillis?.let { profile.timelineFootprint.add(it) }
                 
                 // Extract claims from statements
                 val claim = EntityClaim(
                     text = statement.text,
-                    timestamp = statement.timestamp,
+                    timestamp = statement.timestampMillis,
                     documentId = statement.documentId,
                     statementId = statement.id,
                     category = mapLegalCategoryToClaimCategory(statement.legalCategory)
@@ -81,7 +81,7 @@ class EntityContradictionDetector {
                 profile.addClaim(claim)
                 
                 // Update behavioral profile
-                statement.timestamp?.let { ts ->
+                statement.timestampMillis?.let { ts ->
                     profile.behavioralProfile.sentimentTrend.add(
                         SentimentDataPoint(ts, statement.sentiment, statement.id)
                     )
@@ -376,7 +376,7 @@ class EntityContradictionDetector {
                             amount = amount,
                             currency = currency,
                             description = statement.text.take(100),
-                            timestamp = statement.timestamp,
+                            timestamp = statement.timestampMillis,
                             documentId = statement.documentId,
                             context = statement.context
                         )
@@ -413,7 +413,8 @@ class EntityContradictionDetector {
             documentId = claim.documentId,
             documentName = claim.documentId,
             lineNumber = 0,
-            timestamp = claim.timestamp,
+            timestamp = claim.timestamp?.let { com.verumdec.core.extraction.DateNormalizer.fromMillis(it) },
+            timestampMillis = claim.timestamp,
             legalCategory = mapClaimCategoryToLegalCategory(claim.category)
         )
     }
@@ -432,7 +433,8 @@ class EntityContradictionDetector {
             documentId = figure.documentId,
             documentName = figure.documentId,
             lineNumber = 0,
-            timestamp = figure.timestamp,
+            timestamp = figure.timestamp?.let { com.verumdec.core.extraction.DateNormalizer.fromMillis(it) },
+            timestampMillis = figure.timestamp,
             legalCategory = com.verumdec.core.model.LegalCategory.FINANCIAL
         )
     }

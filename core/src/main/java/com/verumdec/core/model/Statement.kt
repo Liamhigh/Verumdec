@@ -12,7 +12,8 @@ import java.util.UUID
  * @property documentId Source document identifier
  * @property documentName Human-readable source document name
  * @property lineNumber Line number or chunk index in the source
- * @property timestamp When the statement was made (if extractable)
+ * @property timestamp When the statement was made (if extractable) - String in normalized format (YYYY-MM-DD or full datetime)
+ * @property timestampMillis Epoch millis for sorting (computed from timestamp if available)
  * @property context Surrounding context for the statement
  * @property sentiment Detected sentiment (-1.0 to 1.0, negative to positive)
  * @property certainty Confidence/certainty level (0.0 to 1.0)
@@ -26,7 +27,8 @@ data class Statement(
     val documentId: String,
     val documentName: String,
     val lineNumber: Int,
-    val timestamp: Long? = null,
+    val timestamp: String? = null,
+    val timestampMillis: Long? = null,
     val context: String = "",
     val sentiment: Double = 0.0,
     val certainty: Double = 0.5,

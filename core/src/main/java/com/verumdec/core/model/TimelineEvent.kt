@@ -6,7 +6,8 @@ import java.util.UUID
  * Represents a timeline event for chronological ordering.
  *
  * @property id Unique identifier for this event
- * @property timestamp When the event occurred
+ * @property timestamp When the event occurred - String in normalized format (YYYY-MM-DD)
+ * @property timestampMillis Epoch millis for sorting (computed from timestamp). -1L means no timestamp.
  * @property description Description of the event
  * @property type The category of event
  * @property entityIds Entities involved in this event
@@ -17,7 +18,8 @@ import java.util.UUID
  */
 data class TimelineEvent(
     val id: String = UUID.randomUUID().toString(),
-    val timestamp: Long,
+    val timestamp: String? = null,
+    val timestampMillis: Long = -1L,
     val description: String,
     val type: EventType,
     val entityIds: List<String> = emptyList(),

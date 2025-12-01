@@ -237,7 +237,7 @@ class NarrativeEngine {
         contradictions: List<Contradiction>,
         statementIndex: StatementIndex
     ): NarrativeSection {
-        val sortedEvents = events.sortedBy { it.timestamp }
+        val sortedEvents = events.sortedBy { it.timestampMillis }
         val contradictionsByStatement = contradictions
             .flatMap { c -> listOf(c.sourceStatement.id to c, c.targetStatement.id to c) }
             .groupBy { it.first }
@@ -254,7 +254,7 @@ class NarrativeEngine {
             var currentDate = ""
             
             for (event in sortedEvents) {
-                val eventDate = dateFormat.format(Date(event.timestamp))
+                val eventDate = if (event.timestampMillis > 0) dateFormat.format(Date(event.timestampMillis)) else (event.timestamp ?: "Unknown date")
                 
                 // New date header
                 if (eventDate != currentDate) {

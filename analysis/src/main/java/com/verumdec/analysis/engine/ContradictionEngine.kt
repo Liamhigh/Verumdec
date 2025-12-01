@@ -364,7 +364,8 @@ class ContradictionEngine {
                                 documentId = event.documentId,
                                 documentName = event.documentId,
                                 lineNumber = 0,
-                                timestamp = event.timestamp
+                                timestamp = event.timestamp,
+                                timestampMillis = event.timestampMillis
                             ),
                             sourceDocument = statement.documentId,
                             sourceLineNumber = statement.lineNumber,
@@ -397,8 +398,8 @@ class ContradictionEngine {
      * Check for timing conflict between statement and event.
      */
     private fun hasTimingConflict(statement: Statement, event: TimelineEvent): Boolean {
-        val statementTime = statement.timestamp ?: return false
-        val eventTime = event.timestamp
+        val statementTime = statement.timestampMillis ?: return false
+        val eventTime = event.timestampMillis
         
         // More than threshold days difference is a conflict
         val diffDays = kotlin.math.abs(statementTime - eventTime) / MILLIS_PER_DAY

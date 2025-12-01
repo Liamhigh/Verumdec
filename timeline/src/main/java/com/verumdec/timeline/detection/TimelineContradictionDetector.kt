@@ -54,10 +54,13 @@ class TimelineContradictionDetector {
      */
     fun buildTimelineFromStatements(statements: List<Statement>) {
         for (statement in statements) {
-            val timestamp = statement.timestamp ?: continue
+            // Use timestampMillis for sorting, timestamp string for display
+            val timestampMillis = statement.timestampMillis ?: continue
+            val timestamp = statement.timestamp
             
             val event = TimelineEvent(
                 timestamp = timestamp,
+                timestampMillis = timestampMillis,
                 description = statement.text.take(200),
                 type = classifyEventType(statement),
                 entityIds = listOf(statement.speaker),
@@ -77,8 +80,8 @@ class TimelineContradictionDetector {
     fun detectTimelineContradictions(): List<Contradiction> {
         conflicts.clear()
         
-        // Sort events by timestamp
-        val sortedEvents = events.sortedBy { it.timestamp }
+        // Sort events by timestampMillis
+        val sortedEvents = events.sortedBy { it.timestampMillis }
         
         // Detect causality violations
         detectCausalityViolations(sortedEvents)
@@ -129,7 +132,7 @@ class TimelineContradictionDetector {
                 for (pattern in causalPatterns) {
                     if (matchesCausalPattern(eventA, eventB, pattern)) {
                         // Effect appears before cause - this is a violation
-                        if (eventB.timestamp < eventA.timestamp) {
+                        if (eventB.timestampMillis < eventA.timestampMillis) {
                             conflicts.add(
                                 TimelineConflict(
                                     earlierEvent = eventA,
@@ -158,15 +161,15 @@ class TimelineContradictionDetector {
         for ((_, similarEvents) in eventsByDescription) {
             if (similarEvents.size >= 2) {
                 // Check if timestamps differ significantly (more than 1 day)
-                val timestamps = similarEvents.map { it.timestamp }.distinct()
+                val timestamps = similarEvents.map { it.timestampMillis }.distinct()
                 if (timestamps.size > 1) {
                     val minTime = timestamps.minOrNull() ?: continue
                     val maxTime = timestamps.maxOrNull() ?: continue
                     val diffDays = (maxTime - minTime) / (24 * 60 * 60 * 1000)
                     
                     if (diffDays > 0) {
-                        val earlierEvent = similarEvents.minByOrNull { it.timestamp }!!
-                        val laterEvent = similarEvents.maxByOrNull { it.timestamp }!!
+                        val earlierEvent = similarEvents.minByOrNull { it.timestampMillis }!!
+                        val laterEvent = similarEvents.maxByOrNull { it.timestampMillis }!!
                         
                         val severity = when {
                             diffDays > 30 -> 9
@@ -203,13 +206,13 @@ class TimelineContradictionDetector {
         for ((entityId, entityEvents) in eventsByEntity) {
             if (entityId.isBlank() || entityEvents.size < 2) continue
             
-            val sorted = entityEvents.sortedBy { it.timestamp }
+            val sorted = entityEvents.sortedBy { it.timestampMillis }
             for (i in 0 until sorted.size - 1) {
                 val eventA = sorted[i]
                 val eventB = sorted[i + 1]
                 
                 // Check for impossibly rapid transitions
-                val timeDiffMinutes = (eventB.timestamp - eventA.timestamp) / (60 * 1000)
+                val timeDiffMinutes = (eventB.timestampMillis - eventA.timestampMillis) / (60 * 1000)
                 
                 // If different documents claim events happened at nearly same time
                 if (eventA.documentId != eventB.documentId && timeDiffMinutes < 5) {
@@ -255,14 +258,14 @@ class TimelineContradictionDetector {
                     for (eventB in docBEvents) {
                         val similarity = calculateEventSimilarity(eventA, eventB)
                         if (similarity > 0.6) {
-                            val timeDiff = abs(eventA.timestamp - eventB.timestamp)
+                            val timeDiff = abs(eventA.timestampMillis - eventB.timestampMillis)
                             val daysDiff = timeDiff / (24 * 60 * 60 * 1000)
                             
                             if (daysDiff > 1) {
                                 crossConflicts.add(
                                     TimelineConflict(
-                                        earlierEvent = if (eventA.timestamp < eventB.timestamp) eventA else eventB,
-                                        laterEvent = if (eventA.timestamp >= eventB.timestamp) eventA else eventB,
+                                        earlierEvent = if (eventA.timestampMillis < eventB.timestampMillis) eventA else eventB,
+                                        laterEvent = if (eventA.timestampMillis >= eventB.timestampMillis) eventA else eventB,
                                         description = "Cross-document date conflict: Similar events " +
                                             "dated differently by $daysDiff days",
                                         severity = calculateDateConflictSeverity(daysDiff),
@@ -285,7 +288,7 @@ class TimelineContradictionDetector {
      * @return Ordered list of events
      */
     fun buildMasterTimeline(): List<TimelineEvent> {
-        return events.sortedBy { it.timestamp }
+        return events.sortedBy { it.timestampMillis }
     }
     
     /**
@@ -297,7 +300,7 @@ class TimelineContradictionDetector {
     fun buildEntityTimeline(entityId: String): List<TimelineEvent> {
         return events
             .filter { it.entityIds.contains(entityId) }
-            .sortedBy { it.timestamp }
+            .sortedBy { it.timestampMillis }
     }
     
     /**
@@ -385,7 +388,8 @@ class TimelineContradictionDetector {
             documentId = event.documentId,
             documentName = event.documentId,
             lineNumber = 0,
-            timestamp = event.timestamp
+            timestamp = event.timestamp,
+            timestampMillis = event.timestampMillis
         )
     }
     

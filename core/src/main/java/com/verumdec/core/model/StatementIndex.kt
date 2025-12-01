@@ -18,7 +18,8 @@ class StatementIndex {
     private val statements = mutableMapOf<String, Statement>()
     private val bySpeaker = mutableMapOf<String, MutableList<String>>()
     private val byDocument = mutableMapOf<String, MutableList<String>>()
-    private val byTimestamp = sortedMapOf<Long, MutableList<String>>()
+    private val byTimestampMillis = sortedMapOf<Long, MutableList<String>>()
+    private val byTimestamp = mutableMapOf<String, MutableList<String>>()
     private val byLegalCategory = mutableMapOf<LegalCategory, MutableList<String>>()
     
     /**
@@ -50,7 +51,12 @@ class StatementIndex {
         // Index by document
         byDocument.getOrPut(statement.documentId) { mutableListOf() }.add(statement.id)
         
-        // Index by timestamp if available
+        // Index by timestamp millis if available (for sorting)
+        statement.timestampMillis?.let { ts ->
+            byTimestampMillis.getOrPut(ts) { mutableListOf() }.add(statement.id)
+        }
+        
+        // Index by string timestamp if available
         statement.timestamp?.let { ts ->
             byTimestamp.getOrPut(ts) { mutableListOf() }.add(statement.id)
         }
@@ -120,12 +126,12 @@ class StatementIndex {
     /**
      * Get statements within a time range.
      *
-     * @param startTime Start timestamp (inclusive)
-     * @param endTime End timestamp (inclusive)
+     * @param startTime Start timestamp (inclusive) in epoch millis
+     * @param endTime End timestamp (inclusive) in epoch millis
      * @return List of statements within the time range
      */
     fun getStatementsByTimeRange(startTime: Long, endTime: Long): List<Statement> {
-        return byTimestamp.subMap(startTime, endTime + 1)
+        return byTimestampMillis.subMap(startTime, endTime + 1)
             .values
             .flatten()
             .mapNotNull { statements[it] }
@@ -200,6 +206,7 @@ class StatementIndex {
         statements.clear()
         bySpeaker.clear()
         byDocument.clear()
+        byTimestampMillis.clear()
         byTimestamp.clear()
         byLegalCategory.clear()
     }
