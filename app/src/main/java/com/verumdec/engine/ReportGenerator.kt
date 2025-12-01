@@ -38,7 +38,7 @@ class ReportGenerator(private val context: Context) {
     private val marginBottom = 72f // 1 inch bottom margin
     
     // Typography settings for proper legal document formatting
-    private val bodyLineHeight = 16f // 12pt font needs ~16pt line height for readability
+    private val bodyLineHeight = 16f // 11pt font needs ~16pt line height for readability
     private val paragraphSpacing = 14f // Space between paragraphs (12-16pt range)
     private val sectionHeaderSpacingBefore = 24f // Space before section headers
     private val sectionHeaderSpacingAfter = 12f // Space after section headers
@@ -414,9 +414,9 @@ class ReportGenerator(private val context: Context) {
             canvas?.drawText(bullet, marginLeft + bulletIndent, yPosition, invisiblePaint)
             canvas?.drawText(bullet, marginLeft + bulletIndent, yPosition, bodyPaint)
             
-            // Draw the text
+            // Draw the text - use the calculated text indent that accounts for bullet width
             val textIndent = bulletIndent + bulletWidth
-            drawDualLayerText(text, bodyPaint, invisiblePaint, indent, bodyLineHeight)
+            drawDualLayerText(text, bodyPaint, invisiblePaint, textIndent, bodyLineHeight)
             
             yPosition += listItemSpacing
         }
@@ -621,12 +621,12 @@ class ReportGenerator(private val context: Context) {
         for (line in summaryLines) {
             if (line.isNotBlank()) {
                 checkPageBreak()
-                if (line.startsWith("=") || line.startsWith("-") || line.all { it == '=' || it == '-' }) {
-                    // Skip separator lines
+                // Skip separator lines (lines that only contain = or - characters and are not empty)
+                if (line.length > 0 && line.all { it == '=' || it == '-' || it.isWhitespace() }) {
                     continue
                 }
-                if (line.uppercase() == line && line.length < 50) {
-                    // This is likely a header
+                if (line.uppercase() == line && line.length < 50 && line.any { it.isLetter() }) {
+                    // This is likely a header (all caps, short, contains letters)
                     drawSubheader(line)
                 } else {
                     drawParagraph(line)
