@@ -216,27 +216,47 @@ class LiabilityCalculator {
 
     /**
      * Calculate causal responsibility score.
+     * Higher score indicates greater causal responsibility in the matter.
      */
     private fun calculateCausalScore(entity: Entity, entityTimeline: List<TimelineEvent>): Float {
         var score = 0f
         
-        // Who initiated events?
-        val initiatedCount = entityTimeline.count { it.significance == Significance.HIGH }
-        score += initiatedCount * 5f
+        // Who initiated events? Critical events indicate higher responsibility
+        val criticalCount = entityTimeline.count { it.significance == Significance.CRITICAL }
+        val highCount = entityTimeline.count { it.significance == Significance.HIGH }
+        score += criticalCount * 10f
+        score += highCount * 5f
         
-        // Check for payment events (who received money)
+        // Check for payment events (who received money vs who paid)
         val paymentEvents = entityTimeline.filter { it.eventType == EventType.PAYMENT }
         val receivedPayments = paymentEvents.count { 
             it.description.contains("received", ignoreCase = true) ||
-            it.description.contains("got", ignoreCase = true)
+            it.description.contains("got", ignoreCase = true) ||
+            it.description.contains("took", ignoreCase = true)
         }
+        val madePayments = paymentEvents.count {
+            it.description.contains("paid", ignoreCase = true) ||
+            it.description.contains("sent", ignoreCase = true) ||
+            it.description.contains("transferred", ignoreCase = true)
+        }
+        // Receiving money without providing service/goods indicates higher liability
         score += receivedPayments * 15f
+        // Making payments indicates lower liability (reduce score)
+        score -= madePayments * 5f
         
         // Check for promise events (who made promises)
         val promises = entityTimeline.count { it.eventType == EventType.PROMISE }
         score += promises * 3f
         
-        return score.coerceAtMost(100f)
+        // Check for denial events after evidence presented
+        val denialAfterEvidence = entityTimeline.count { it.eventType == EventType.DENIAL }
+        score += denialAfterEvidence * 8f
+        
+        // Check for admission events (indicates some responsibility acceptance)
+        val admissions = entityTimeline.count { it.eventType == EventType.ADMISSION }
+        score += admissions * 5f
+        
+        return score.coerceIn(0f, 100f)
     }
 
     /**

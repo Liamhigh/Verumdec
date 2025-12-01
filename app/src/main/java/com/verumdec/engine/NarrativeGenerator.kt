@@ -387,21 +387,87 @@ class NarrativeGenerator {
         
         val highestLiability = sortedEntities.firstOrNull()
         val highestScore = liabilityScores[highestLiability?.id]
+        val secondHighest = sortedEntities.getOrNull(1)
+        val secondScore = liabilityScores[secondHighest?.id]
         
-        if (highestLiability != null && highestScore != null && highestScore.overallScore > 50f) {
-            builder.appendLine("CONCLUSION:")
-            builder.appendLine("Based on the analysis, ${highestLiability.primaryName} bears the highest responsibility")
-            builder.appendLine("with a liability score of ${String.format("%.1f", highestScore.overallScore)}%.")
-            builder.appendLine()
-            
-            if (criticalContradictions.isNotEmpty()) {
-                builder.appendLine("Critical findings include ${criticalContradictions.size} critical contradiction(s)")
-                builder.appendLine("that significantly impact the credibility of their account.")
+        builder.appendLine("CONCLUSION:")
+        builder.appendLine()
+        
+        // Provide tiered conclusions based on liability scores
+        when {
+            highestLiability != null && highestScore != null && highestScore.overallScore >= 80f -> {
+                // Very high liability - clear responsibility
+                builder.appendLine("Based on the forensic analysis, ${highestLiability.primaryName} bears PRIMARY RESPONSIBILITY")
+                builder.appendLine("with a liability score of ${String.format("%.1f", highestScore.overallScore)}%.")
+                builder.appendLine()
+                builder.appendLine("KEY FACTORS:")
+                if (highestScore.contradictionScore >= 50f) {
+                    builder.appendLine("  - Multiple significant contradictions detected in statements")
+                }
+                if (highestScore.behavioralScore >= 30f) {
+                    builder.appendLine("  - Behavioral patterns indicate possible deceptive conduct")
+                }
+                if (highestScore.chronologicalConsistencyScore >= 40f) {
+                    builder.appendLine("  - Timeline inconsistencies undermine credibility")
+                }
+                if (highestScore.causalResponsibilityScore >= 30f) {
+                    builder.appendLine("  - Causal chain analysis indicates central role in events")
+                }
             }
-        } else {
-            builder.appendLine("CONCLUSION:")
-            builder.appendLine("The analysis indicates no party with conclusively high liability based on available evidence.")
-            builder.appendLine("Further investigation may be required.")
+            highestLiability != null && highestScore != null && highestScore.overallScore >= 50f -> {
+                // High liability - strong indication of responsibility
+                builder.appendLine("Based on the analysis, ${highestLiability.primaryName} bears the highest responsibility")
+                builder.appendLine("with a liability score of ${String.format("%.1f", highestScore.overallScore)}%.")
+                builder.appendLine()
+                
+                if (criticalContradictions.isNotEmpty()) {
+                    builder.appendLine("Critical findings include ${criticalContradictions.size} critical contradiction(s)")
+                    builder.appendLine("that significantly impact the credibility of their account.")
+                }
+                
+                if (secondHighest != null && secondScore != null && secondScore.overallScore >= 30f) {
+                    builder.appendLine()
+                    builder.appendLine("Note: ${secondHighest.primaryName} also shows elevated liability")
+                    builder.appendLine("(${String.format("%.1f", secondScore.overallScore)}%) and may share some responsibility.")
+                }
+            }
+            highestLiability != null && highestScore != null && highestScore.overallScore >= 30f -> {
+                // Moderate liability - some indication but inconclusive
+                builder.appendLine("The analysis indicates ${highestLiability.primaryName} has the highest liability score")
+                builder.appendLine("at ${String.format("%.1f", highestScore.overallScore)}%, but this is not conclusive.")
+                builder.appendLine()
+                builder.appendLine("RECOMMENDATION:")
+                builder.appendLine("  - Additional evidence may be needed for definitive determination")
+                builder.appendLine("  - Focus investigation on areas with detected contradictions")
+                
+                if (highContradictions.isNotEmpty()) {
+                    builder.appendLine("  - ${highContradictions.size} high-severity contradiction(s) warrant further examination")
+                }
+            }
+            else -> {
+                // Low or no clear liability
+                builder.appendLine("The analysis indicates no party with conclusively high liability based on available evidence.")
+                builder.appendLine()
+                builder.appendLine("RECOMMENDATIONS:")
+                builder.appendLine("  - Further investigation may be required")
+                builder.appendLine("  - Additional documentation or evidence should be obtained")
+                builder.appendLine("  - Consider interviewing parties to clarify ambiguities")
+            }
+        }
+        
+        // Add summary of most critical contradictions if any
+        if (criticalContradictions.isNotEmpty()) {
+            builder.appendLine()
+            builder.appendLine("---")
+            builder.appendLine()
+            builder.appendLine("CRITICAL CONTRADICTIONS SUMMARY:")
+            for ((index, contradiction) in criticalContradictions.take(3).withIndex()) {
+                val entityName = entities.find { it.id == contradiction.entityId }?.primaryName ?: "Unknown"
+                builder.appendLine("${index + 1}. [$entityName] ${contradiction.description.take(100)}...")
+            }
+            if (criticalContradictions.size > 3) {
+                builder.appendLine("   ... and ${criticalContradictions.size - 3} more critical contradictions")
+            }
         }
         
         return builder.toString()
