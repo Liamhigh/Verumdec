@@ -3,18 +3,43 @@ package com.verumdec.engine
 import com.verumdec.data.*
 
 /**
- * Liability Matrix Calculator
- * Computes liability scores for each entity based on multiple factors.
+ * Liability Matrix Calculator (Gold Standard Implementation)
+ * Computes liability scores for each entity based on multiple weighted factors.
+ * 
+ * Based on the Verum Omnis forensic doctrine:
+ * - Contradiction Score (30%): How often they changed their story
+ * - Behavioral Score (20%): Gaslighting, story shifting, blame shifting
+ * - Evidence Contribution (15%): Did they provide evidence or only excuses?
+ * - Chronological Consistency (20%): Is their story stable over time?
+ * - Causal Responsibility (15%): Who initiated, controlled, benefited?
+ * 
+ * Returns a percentage liability score for each person (0-100%).
  */
 class LiabilityCalculator {
 
-    // Weight factors for different components
+    // Weight factors for different components (Gold Standard)
     private val weights = mapOf(
         "contradiction" to 0.30f,
         "behavioral" to 0.20f,
         "evidence" to 0.15f,
         "consistency" to 0.20f,
         "causal" to 0.15f
+    )
+    
+    // Severity multipliers for behavioral patterns (Gold Standard)
+    private val behaviorSeverityMultipliers = mapOf(
+        BehaviorType.GASLIGHTING to 20f,
+        BehaviorType.FINANCIAL_MANIPULATION to 18f,
+        BehaviorType.PASSIVE_ADMISSION to 15f,
+        BehaviorType.SLIP_UP_ADMISSION to 16f,  // Gold Standard - slip-up admissions are highly indicative
+        BehaviorType.BLAME_SHIFTING to 12f,
+        BehaviorType.PRESSURE_TACTICS to 10f,
+        BehaviorType.DEFLECTION to 8f,
+        BehaviorType.EMOTIONAL_MANIPULATION to 8f,
+        BehaviorType.OVER_EXPLAINING to 7f,     // Increased - fraud red flag per Gold Standard
+        BehaviorType.GHOSTING to 5f,
+        BehaviorType.SUDDEN_WITHDRAWAL to 5f,
+        BehaviorType.DELAYED_RESPONSE to 4f
     )
 
     /**
@@ -121,7 +146,8 @@ class LiabilityCalculator {
     }
 
     /**
-     * Calculate score based on behavioral patterns.
+     * Calculate score based on behavioral patterns (Gold Standard Implementation).
+     * Uses severity multipliers based on behavioral pattern type impact.
      */
     private fun calculateBehavioralScore(patterns: List<BehavioralPattern>): Float {
         if (patterns.isEmpty()) return 0f
@@ -129,22 +155,9 @@ class LiabilityCalculator {
         var score = 0f
         
         for (pattern in patterns) {
-            val baseScore = when (pattern.type) {
-                BehaviorType.GASLIGHTING -> 20f
-                BehaviorType.FINANCIAL_MANIPULATION -> 18f
-                BehaviorType.PASSIVE_ADMISSION -> 15f
-                BehaviorType.BLAME_SHIFTING -> 12f
-                BehaviorType.PRESSURE_TACTICS -> 10f
-                BehaviorType.DEFLECTION -> 8f
-                BehaviorType.EMOTIONAL_MANIPULATION -> 8f
-                BehaviorType.OVER_EXPLAINING -> 6f
-                BehaviorType.GHOSTING -> 5f
-                BehaviorType.SUDDEN_WITHDRAWAL -> 5f
-                BehaviorType.DELAYED_RESPONSE -> 4f
-                BehaviorType.SLIP_UP_ADMISSION -> 15f
-            }
+            val baseScore = behaviorSeverityMultipliers[pattern.type] ?: 5f
             
-            // Multiply by severity
+            // Multiply by severity (Gold Standard severity weighting)
             score += baseScore * when (pattern.severity) {
                 Severity.CRITICAL -> 1.5f
                 Severity.HIGH -> 1.2f
