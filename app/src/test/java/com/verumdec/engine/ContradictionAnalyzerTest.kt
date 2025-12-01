@@ -26,14 +26,15 @@ class ContradictionAnalyzerTest {
             id = "entity1",
             primaryName = "John Doe",
             emails = mutableListOf("john@example.com"),
-            phones = mutableListOf(),
+            phoneNumbers = mutableListOf(),
             aliases = mutableListOf()
         )
 
         val evidence1 = Evidence(
             id = "ev1",
-            fileName = "email1.txt",
             type = EvidenceType.TEXT,
+            fileName = "email1.txt",
+            filePath = "/path/to/email1.txt",
             extractedText = "I paid the full amount as promised.",
             metadata = EvidenceMetadata(
                 sender = "John Doe",
@@ -43,8 +44,9 @@ class ContradictionAnalyzerTest {
 
         val evidence2 = Evidence(
             id = "ev2",
-            fileName = "email2.txt",
             type = EvidenceType.TEXT,
+            fileName = "email2.txt",
+            filePath = "/path/to/email2.txt",
             extractedText = "I never paid anything. You are lying.",
             metadata = EvidenceMetadata(
                 sender = "John Doe",
@@ -74,14 +76,15 @@ class ContradictionAnalyzerTest {
             id = "entity1",
             primaryName = "Jane Smith",
             emails = mutableListOf("jane@example.com"),
-            phones = mutableListOf(),
+            phoneNumbers = mutableListOf(),
             aliases = mutableListOf()
         )
 
         val evidence1 = Evidence(
             id = "ev1",
-            fileName = "statement1.txt",
             type = EvidenceType.TEXT,
+            fileName = "statement1.txt",
+            filePath = "/path/to/statement1.txt",
             extractedText = "I never agreed to that deal.",
             metadata = EvidenceMetadata(
                 sender = "jane@example.com",
@@ -91,8 +94,9 @@ class ContradictionAnalyzerTest {
 
         val evidence2 = Evidence(
             id = "ev2",
-            fileName = "statement2.txt",
             type = EvidenceType.TEXT,
+            fileName = "statement2.txt",
+            filePath = "/path/to/statement2.txt",
             extractedText = "I did admit that I agreed. Yes, I made that commitment.",
             metadata = EvidenceMetadata(
                 sender = "jane@example.com",
@@ -120,22 +124,24 @@ class ContradictionAnalyzerTest {
             id = "entity1",
             primaryName = "Bob Johnson",
             emails = mutableListOf("bob@example.com"),
-            phones = mutableListOf(),
+            phoneNumbers = mutableListOf(),
             aliases = mutableListOf()
         )
 
         val evidence1 = Evidence(
             id = "ev1",
-            fileName = "contract.pdf",
             type = EvidenceType.PDF,
+            fileName = "contract.pdf",
+            filePath = "/path/to/contract.pdf",
             extractedText = "The payment amount was agreed to be 10000 dollars.",
             metadata = EvidenceMetadata(sender = "bob@example.com")
         )
 
         val evidence2 = Evidence(
             id = "ev2",
-            fileName = "letter.pdf",
             type = EvidenceType.PDF,
+            fileName = "letter.pdf",
+            filePath = "/path/to/letter.pdf",
             extractedText = "The amount was never 10000 dollars. It was always 5000.",
             metadata = EvidenceMetadata(sender = "bob@example.com")
         )
@@ -160,7 +166,7 @@ class ContradictionAnalyzerTest {
             id = "entity1",
             primaryName = "Alice",
             emails = mutableListOf("alice@example.com"),
-            phones = mutableListOf(),
+            phoneNumbers = mutableListOf(),
             aliases = mutableListOf()
         )
 
@@ -168,22 +174,24 @@ class ContradictionAnalyzerTest {
             id = "entity2",
             primaryName = "Bob",
             emails = mutableListOf("bob@example.com"),
-            phones = mutableListOf(),
+            phoneNumbers = mutableListOf(),
             aliases = mutableListOf()
         )
 
         val evidence1 = Evidence(
             id = "ev1",
-            fileName = "email1.txt",
             type = EvidenceType.TEXT,
+            fileName = "email1.txt",
+            filePath = "/path/to/email1.txt",
             extractedText = "Alice said she received the payment in full yesterday at noon.",
             metadata = EvidenceMetadata(sender = "bob@example.com")
         )
 
         val evidence2 = Evidence(
             id = "ev2",
-            fileName = "email2.txt",
             type = EvidenceType.TEXT,
+            fileName = "email2.txt",
+            filePath = "/path/to/email2.txt",
             extractedText = "I never received any payment from Bob. He is lying.",
             metadata = EvidenceMetadata(sender = "alice@example.com")
         )
@@ -211,14 +219,15 @@ class ContradictionAnalyzerTest {
             id = "entity1",
             primaryName = "Charlie",
             emails = mutableListOf("charlie@example.com"),
-            phones = mutableListOf(),
+            phoneNumbers = mutableListOf(),
             aliases = mutableListOf()
         )
 
         val evidence1 = Evidence(
             id = "ev1",
-            fileName = "email1.txt",
             type = EvidenceType.TEXT,
+            fileName = "email1.txt",
+            filePath = "/path/to/email1.txt",
             extractedText = "I paid the invoice on time.",
             metadata = EvidenceMetadata(
                 sender = "charlie@example.com",
@@ -228,8 +237,9 @@ class ContradictionAnalyzerTest {
 
         val evidence2 = Evidence(
             id = "ev2",
-            fileName = "email2.txt",
             type = EvidenceType.TEXT,
+            fileName = "email2.txt",
+            filePath = "/path/to/email2.txt",
             extractedText = "Yes, I confirmed that the payment was on time.",
             metadata = EvidenceMetadata(
                 sender = "charlie@example.com",

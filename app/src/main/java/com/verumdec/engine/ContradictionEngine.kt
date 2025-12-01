@@ -10,17 +10,27 @@ import java.io.File
 /**
  * Main Contradiction Engine
  * Orchestrates the full forensic analysis pipeline.
+ * 
+ * This engine now integrates the LEVELER ENGINE for unified analysis,
+ * providing enhanced semantic contradiction detection, entity profiling,
+ * and behavioral anomaly detection.
  */
-class ContradictionEngine(private val context: Context) {
+class ContradictionEngine(private val context: Context?) {
 
-    private val evidenceProcessor = EvidenceProcessor(context)
+    private val evidenceProcessor = context?.let { EvidenceProcessor(it) }
     private val entityDiscovery = EntityDiscovery()
     private val timelineGenerator = TimelineGenerator()
     private val contradictionAnalyzer = ContradictionAnalyzer()
     private val behavioralAnalyzer = BehavioralAnalyzer()
     private val liabilityCalculator = LiabilityCalculator()
     private val narrativeGenerator = NarrativeGenerator()
-    private val reportGenerator = ReportGenerator(context)
+    private val reportGenerator = context?.let { ReportGenerator(it) }
+    
+    // LEVELER ENGINE - Unified analysis engine for enhanced contradiction detection
+    private val levelerEngine = LevelerEngine(context)
+    
+    // Store the latest Leveler output for report generation
+    private var lastLevelerOutput: LevelerOutput? = null
 
     /**
      * Analysis progress listener.
@@ -36,6 +46,7 @@ class ContradictionEngine(private val context: Context) {
         DISCOVERING_ENTITIES,
         GENERATING_TIMELINE,
         ANALYZING_CONTRADICTIONS,
+        RUNNING_LEVELER_ENGINE,
         ANALYZING_BEHAVIOR,
         CALCULATING_LIABILITY,
         GENERATING_NARRATIVE,
@@ -51,6 +62,10 @@ class ContradictionEngine(private val context: Context) {
         listener: ProgressListener
     ): Case = withContext(Dispatchers.IO) {
         try {
+            // Validate that context is available for evidence processing
+            val processor = evidenceProcessor 
+                ?: throw IllegalStateException("EvidenceProcessor not available: context is required for analyze()")
+            
             var currentCase = case
 
             // Stage 1: Process Evidence
@@ -60,7 +75,7 @@ class ContradictionEngine(private val context: Context) {
             
             for ((index, evidence) in currentCase.evidence.withIndex()) {
                 val uri = evidenceUris[evidence.id] ?: continue
-                val processed = evidenceProcessor.processEvidence(evidence, uri)
+                val processed = processor.processEvidence(evidence, uri)
                 processedEvidence.add(processed)
                 
                 val progress = ((index + 1) * 100 / totalEvidence)
@@ -93,26 +108,45 @@ class ContradictionEngine(private val context: Context) {
                 "Generated ${timeline.size} timeline events"
             )
 
-            // Stage 4: Analyze Contradictions
+            // Stage 4: Analyze Contradictions (basic analyzer)
             listener.onProgressUpdate(AnalysisStage.ANALYZING_CONTRADICTIONS, 0, "Detecting contradictions...")
-            val contradictions = contradictionAnalyzer.analyzeContradictions(processedEvidence, entities, timeline)
-            currentCase = currentCase.copy(contradictions = contradictions.toMutableList())
+            val basicContradictions = contradictionAnalyzer.analyzeContradictions(processedEvidence, entities, timeline)
             listener.onProgressUpdate(
                 AnalysisStage.ANALYZING_CONTRADICTIONS, 
-                100, 
-                "Found ${contradictions.size} contradictions"
+                50, 
+                "Basic analysis found ${basicContradictions.size} contradictions"
             )
 
-            // Stage 5: Analyze Behavior
-            listener.onProgressUpdate(AnalysisStage.ANALYZING_BEHAVIOR, 0, "Analyzing behavioral patterns...")
-            val behavioralPatterns = behavioralAnalyzer.analyzeBehavior(processedEvidence, entities, timeline)
+            // Stage 5: Run LEVELER ENGINE for enhanced analysis
+            listener.onProgressUpdate(AnalysisStage.RUNNING_LEVELER_ENGINE, 0, "Running LEVELER ENGINE v${LevelerEngine.VERSION}...")
+            val basicBehavioralPatterns = behavioralAnalyzer.analyzeBehavior(processedEvidence, entities, timeline)
+            
+            val levelerOutput = levelerEngine.process(
+                evidence = processedEvidence,
+                entities = entities,
+                timeline = timeline,
+                existingContradictions = basicContradictions,
+                behavioralPatterns = basicBehavioralPatterns
+            )
+            lastLevelerOutput = levelerOutput
+            
+            // Use Leveler's enhanced contradictions and behavioral patterns
+            val contradictions = levelerOutput.contradictions
+            val behavioralPatterns = levelerOutput.behavioralPatterns
+            
+            currentCase = currentCase.copy(contradictions = contradictions.toMutableList())
             listener.onProgressUpdate(
-                AnalysisStage.ANALYZING_BEHAVIOR, 
+                AnalysisStage.RUNNING_LEVELER_ENGINE, 
                 100, 
-                "Detected ${behavioralPatterns.size} behavioral patterns"
+                "LEVELER ENGINE complete: ${levelerOutput.statistics.levelerDetectedContradictions} additional contradictions detected"
             )
 
-            // Stage 6: Calculate Liability
+            // Stage 6: Analyze Behavior (already done by Leveler, just report)
+            listener.onProgressUpdate(AnalysisStage.ANALYZING_BEHAVIOR, 100, 
+                "Behavioral analysis complete: ${behavioralPatterns.size} patterns detected"
+            )
+
+            // Stage 7: Calculate Liability
             listener.onProgressUpdate(AnalysisStage.CALCULATING_LIABILITY, 0, "Calculating liability scores...")
             val liabilityScores = liabilityCalculator.calculateLiability(
                 entities, contradictions, behavioralPatterns, processedEvidence, timeline
@@ -124,16 +158,23 @@ class ContradictionEngine(private val context: Context) {
                 "Calculated scores for ${liabilityScores.size} entities"
             )
 
-            // Stage 7: Generate Narrative
+            // Stage 8: Generate Narrative (with Leveler context)
             listener.onProgressUpdate(AnalysisStage.GENERATING_NARRATIVE, 0, "Generating narrative...")
             val narrativeSections = narrativeGenerator.generateNarrative(
                 entities, timeline, contradictions, behavioralPatterns, liabilityScores
             )
-            currentCase = currentCase.copy(narrative = narrativeSections.finalSummary)
+            
+            // Append Leveler analysis summary to the narrative
+            val levelerSummary = buildLevelerNarrativeSummary(levelerOutput)
+            val enhancedNarrative = narrativeSections.copy(
+                finalSummary = "${narrativeSections.finalSummary}\n\n$levelerSummary"
+            )
+            
+            currentCase = currentCase.copy(narrative = enhancedNarrative.finalSummary)
             listener.onProgressUpdate(
                 AnalysisStage.GENERATING_NARRATIVE, 
                 100, 
-                "Narrative generated"
+                "Narrative generated with LEVELER ENGINE insights"
             )
 
             // Complete
@@ -149,29 +190,105 @@ class ContradictionEngine(private val context: Context) {
 
     /**
      * Generate and export PDF report.
+     * Now includes LEVELER ENGINE analysis output in the report.
      */
     suspend fun generateReport(case: Case): File = withContext(Dispatchers.IO) {
-        val behavioralPatterns = behavioralAnalyzer.analyzeBehavior(
-            case.evidence, case.entities, case.timeline
-        )
+        // Run Leveler if not already run
+        val levelerOutput = lastLevelerOutput ?: run {
+            val basicBehavioralPatterns = behavioralAnalyzer.analyzeBehavior(
+                case.evidence, case.entities, case.timeline
+            )
+            levelerEngine.process(
+                evidence = case.evidence,
+                entities = case.entities,
+                timeline = case.timeline,
+                existingContradictions = case.contradictions,
+                behavioralPatterns = basicBehavioralPatterns
+            )
+        }
         
-        val narrativeSections = narrativeGenerator.generateNarrative(
-            case.entities, case.timeline, case.contradictions, 
+        // Use Leveler-enhanced behavioral patterns
+        val behavioralPatterns = levelerOutput.behavioralPatterns
+        
+        // Generate narrative with Leveler insights
+        val baseNarrativeSections = narrativeGenerator.generateNarrative(
+            case.entities, case.timeline, levelerOutput.contradictions, 
             behavioralPatterns, case.liabilityScores
         )
         
-        val report = reportGenerator.generateReport(
+        // Enhance narrative with Leveler analysis summary
+        val levelerSummary = buildLevelerNarrativeSummary(levelerOutput)
+        val enhancedNarrativeSections = baseNarrativeSections.copy(
+            finalSummary = "${baseNarrativeSections.finalSummary}\n\n$levelerSummary"
+        )
+        
+        val report = reportGenerator?.generateReport(
             caseName = case.name,
             entities = case.entities,
             timeline = case.timeline,
-            contradictions = case.contradictions,
+            contradictions = levelerOutput.contradictions,
             behavioralPatterns = behavioralPatterns,
             liabilityScores = case.liabilityScores,
-            narrativeSections = narrativeSections
-        )
+            narrativeSections = enhancedNarrativeSections
+        ) ?: throw IllegalStateException("ReportGenerator not initialized")
         
         reportGenerator.exportToPdf(report)
     }
+    
+    /**
+     * Build a narrative summary section from the Leveler output.
+     */
+    private fun buildLevelerNarrativeSummary(output: LevelerOutput): String {
+        val sb = StringBuilder()
+        sb.appendLine("═══════════════════════════════════════════════════════════════")
+        sb.appendLine("LEVELER ENGINE ANALYSIS REPORT")
+        sb.appendLine("═══════════════════════════════════════════════════════════════")
+        sb.appendLine()
+        sb.appendLine("Engine: ${output.engineName} v${output.engineVersion}")
+        sb.appendLine("Analysis Completed: ${output.processedAt}")
+        sb.appendLine("Scan Hash: ${output.scanHash}")
+        sb.appendLine()
+        sb.appendLine("ANALYSIS STATISTICS:")
+        sb.appendLine("─────────────────────────────────────────────────────────────────")
+        sb.appendLine("  • Total Statements Indexed: ${output.statistics.totalStatements}")
+        sb.appendLine("  • Entity Profiles Built: ${output.statistics.totalEntities}")
+        sb.appendLine("  • Timeline Events Analyzed: ${output.statistics.totalTimelineEvents}")
+        sb.appendLine()
+        sb.appendLine("CONTRADICTION DETECTION:")
+        sb.appendLine("─────────────────────────────────────────────────────────────────")
+        sb.appendLine("  • Total Contradictions: ${output.statistics.totalContradictions}")
+        sb.appendLine("  • LEVELER-Detected: ${output.statistics.levelerDetectedContradictions}")
+        sb.appendLine("  • Semantic Contradictions: ${output.statistics.semanticContradictions}")
+        sb.appendLine("  • Financial Discrepancies: ${output.statistics.financialContradictions}")
+        sb.appendLine()
+        sb.appendLine("SEVERITY BREAKDOWN:")
+        sb.appendLine("─────────────────────────────────────────────────────────────────")
+        sb.appendLine("  • CRITICAL: ${output.statistics.criticalSeverityCount}")
+        sb.appendLine("  • HIGH: ${output.statistics.highSeverityCount}")
+        sb.appendLine("  • MEDIUM: ${output.statistics.mediumSeverityCount}")
+        sb.appendLine("  • LOW: ${output.statistics.lowSeverityCount}")
+        sb.appendLine()
+        sb.appendLine("BEHAVIORAL ANALYSIS:")
+        sb.appendLine("─────────────────────────────────────────────────────────────────")
+        sb.appendLine("  • Behavioral Patterns Detected: ${output.statistics.totalBehavioralPatterns}")
+        sb.appendLine("  • Entities with Contradictions: ${output.statistics.entitiesWithContradictions}")
+        sb.appendLine("  • Avg Statements per Entity: ${String.format("%.1f", output.statistics.averageStatementsPerEntity)}")
+        sb.appendLine()
+        sb.appendLine("ANALYSIS LOG:")
+        sb.appendLine("─────────────────────────────────────────────────────────────────")
+        output.analysisLog.forEach { sb.appendLine("  $it") }
+        sb.appendLine()
+        sb.appendLine("═══════════════════════════════════════════════════════════════")
+        sb.appendLine("END OF LEVELER ENGINE REPORT")
+        sb.appendLine("═══════════════════════════════════════════════════════════════")
+        
+        return sb.toString()
+    }
+    
+    /**
+     * Get the last Leveler output (useful for debugging/inspection).
+     */
+    fun getLastLevelerOutput(): LevelerOutput? = lastLevelerOutput
 
     /**
      * Get a quick summary of the case.
