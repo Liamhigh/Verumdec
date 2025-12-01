@@ -25,6 +25,10 @@
     <string name="label_contradictions">Contradictions Found</string>
     <string name="label_liability">Liability Score</string>
     <string name="label_narrative">Generated Narrative</string>
+    <string name="label_violations">Constitutional Violations</string>
+    
+    <!-- Constitution -->
+    <string name="violation_warning">The following constitutional rules have been violated. Review these issues to ensure analysis integrity.</string>
     
     <!-- Severity Levels -->
     <string name="severity_critical">Critical</string>

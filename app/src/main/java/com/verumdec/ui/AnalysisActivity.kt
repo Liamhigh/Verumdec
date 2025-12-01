@@ -74,6 +74,9 @@ class AnalysisActivity : AppCompatActivity() {
             contradictionAdapter.submitList(case.contradictions)
         }
 
+        // Display constitution violations
+        displayConstitutionViolations(case)
+
         // Display liability scores
         val liabilityAdapter = LiabilityAdapter(case.entities)
         binding.recyclerLiability.apply {
@@ -85,6 +88,23 @@ class AnalysisActivity : AppCompatActivity() {
         // Display narrative
         binding.textNarrative.text = case.narrative.ifEmpty { 
             "Narrative will be generated with the full report."
+        }
+    }
+
+    /**
+     * Display constitution violations if any exist.
+     */
+    private fun displayConstitutionViolations(case: Case) {
+        if (case.constitutionViolations.isEmpty()) {
+            binding.cardViolations.visibility = View.GONE
+        } else {
+            binding.cardViolations.visibility = View.VISIBLE
+            val violationAdapter = ViolationAdapter()
+            binding.recyclerViolations.apply {
+                layoutManager = LinearLayoutManager(this@AnalysisActivity)
+                adapter = violationAdapter
+            }
+            violationAdapter.submitList(case.constitutionViolations)
         }
     }
 

@@ -18,7 +18,8 @@ data class Case(
     val contradictions: MutableList<Contradiction> = mutableListOf(),
     val liabilityScores: MutableMap<String, LiabilityScore> = mutableMapOf(),
     val narrative: String = "",
-    val sealedHash: String? = null
+    val sealedHash: String? = null,
+    val constitutionViolations: MutableList<ConstitutionViolation> = mutableListOf()
 )
 
 /**
@@ -32,7 +33,9 @@ data class Evidence(
     val addedAt: Date = Date(),
     val extractedText: String = "",
     val metadata: EvidenceMetadata = EvidenceMetadata(),
-    val processed: Boolean = false
+    val processed: Boolean = false,
+    val origin: String = "",        // Origin/source of the evidence
+    val contentHash: String = ""    // SHA-256 hash for integrity verification
 )
 
 enum class EvidenceType {
@@ -242,4 +245,87 @@ data class NarrativeSections(
     val deductiveLogic: String = "",              // WHY contradictions matter
     val causalChain: String = "",                 // Cause -> effect links
     val finalSummary: String = ""                 // Merged legal story
+)
+
+// ============================================
+// Constitution Models
+// ============================================
+
+/**
+ * Type of rule check performed by the Constitution engine.
+ */
+enum class ConstitutionCheckType {
+    BIAS_CHECK,              // Check for bias in entity treatment
+    ADMISSION_CHECK,         // Check for missing admissions
+    CONTRADICTION_CHECK,     // Check for skipped contradictions
+    AMBIGUITY_CHECK,         // Check for ambiguous evidence
+    ORIGIN_CHECK,            // Check for evidence origin tracking
+    HASH_CHAIN_CHECK         // Check for cryptographic hash chain
+}
+
+/**
+ * Severity level for constitution violations.
+ */
+enum class ConstitutionViolationSeverity {
+    CRITICAL,   // Analysis cannot proceed, fundamental rule broken
+    HIGH,       // Significant issue that must be addressed
+    MEDIUM,     // Moderate issue, should be reviewed
+    LOW         // Minor issue, informational
+}
+
+/**
+ * A rule defined in the Constitution.
+ */
+data class ConstitutionRule(
+    val id: String,
+    val name: String,
+    val description: String,
+    val severity: ConstitutionViolationSeverity,
+    val checkType: ConstitutionCheckType
+)
+
+/**
+ * A violation of a constitution rule.
+ */
+data class ConstitutionViolation(
+    val id: String = UUID.randomUUID().toString(),
+    val ruleId: String,
+    val ruleName: String,
+    val description: String,
+    val severity: ConstitutionViolationSeverity,
+    val checkType: ConstitutionCheckType,
+    val affectedEntityId: String? = null,
+    val affectedEvidenceId: String? = null,
+    val details: String = "",
+    val detectedAt: Date = Date()
+)
+
+/**
+ * The complete Constitution containing all rules.
+ */
+data class Constitution(
+    val version: String,
+    val name: String,
+    val description: String,
+    val rules: List<ConstitutionRule>,
+    val metadata: ConstitutionMetadata = ConstitutionMetadata()
+)
+
+/**
+ * Metadata about the Constitution.
+ */
+data class ConstitutionMetadata(
+    val createdAt: String = "",
+    val lastModified: String = "",
+    val author: String = ""
+)
+
+/**
+ * Result of a constitution enforcement check.
+ */
+data class ConstitutionEnforcementResult(
+    val isCompliant: Boolean,
+    val violations: List<ConstitutionViolation>,
+    val checkedRules: List<String>,
+    val enforcedAt: Date = Date()
 )
