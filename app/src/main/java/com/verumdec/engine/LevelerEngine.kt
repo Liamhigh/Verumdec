@@ -294,7 +294,7 @@ class LevelerEngine(private val context: Context?) {
         val contradictions = mutableListOf<Contradiction>()
 
         // Negation patterns
-        val negationWords = setOf("not", "never", "no", "didn't", "didn't", "wasn't", "won't", 
+        val negationWords = setOf("not", "never", "no", "didn't", "wasn't", "won't", 
             "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
 
         for (i in statements.indices) {

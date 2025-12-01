@@ -62,6 +62,10 @@ class ContradictionEngine(private val context: Context?) {
         listener: ProgressListener
     ): Case = withContext(Dispatchers.IO) {
         try {
+            // Validate that context is available for evidence processing
+            val processor = evidenceProcessor 
+                ?: throw IllegalStateException("EvidenceProcessor not available: context is required for analyze()")
+            
             var currentCase = case
 
             // Stage 1: Process Evidence
@@ -71,7 +75,6 @@ class ContradictionEngine(private val context: Context?) {
             
             for ((index, evidence) in currentCase.evidence.withIndex()) {
                 val uri = evidenceUris[evidence.id] ?: continue
-                val processor = evidenceProcessor ?: continue
                 val processed = processor.processEvidence(evidence, uri)
                 processedEvidence.add(processed)
                 
