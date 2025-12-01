@@ -10,7 +10,7 @@ import java.util.*
 class ContradictionAnalyzer {
 
     // Negation indicators
-    private val negations = listOf("not", "never", "no", "didn't", "didn't", "wasn't", "won't", "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
+    private val negations = listOf("not", "never", "no", "didn't", "wasn't", "won't", "don't", "can't", "couldn't", "wouldn't", "shouldn't", "haven't", "hasn't", "hadn't")
     
     // Contradiction trigger phrases - expanded for better coverage
     private val contradictionTriggers = listOf(
@@ -152,8 +152,8 @@ class ContradictionAnalyzer {
         val lower = text.lowercase()
         
         return when {
-            // Check for denial patterns - "never", "didn't", "not", etc.
-            negations.any { lower.contains("$it ") || lower.endsWith(" $it") || lower.endsWith(it) } -> StatementType.DENIAL
+            // Check for denial patterns - "never", "didn't", "not", etc. using word boundaries
+            containsNegation(lower) -> StatementType.DENIAL
             lower.contains("i promise") || lower.contains("will ") || lower.contains("shall ") -> StatementType.PROMISE
             lower.contains("admit") || lower.contains("yes i") || lower.contains("i did") -> StatementType.ADMISSION
             lower.contains("claim") || lower.contains("assert") -> StatementType.CLAIM
