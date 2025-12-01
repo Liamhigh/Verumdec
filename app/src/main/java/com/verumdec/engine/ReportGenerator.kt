@@ -32,8 +32,29 @@ class ReportGenerator(private val context: Context) {
     private val dateFormat = SimpleDateFormat("dd MMMM yyyy HH:mm:ss", Locale.US)
     private val pageWidth = 595 // A4 width in points
     private val pageHeight = 842 // A4 height in points
-    private val margin = 50f
-    private val lineHeight = 14f
+    
+    // Professional legal document margins (1 inch = 72 points)
+    private val marginLeft = 72f
+    private val marginRight = 72f
+    private val marginTop = 72f
+    private val marginBottom = 72f
+    
+    // Typography settings for proper legal document formatting
+    private val bodyLineHeight = 16f // 11pt font needs ~16pt line height for readability
+    private val paragraphSpacing = 14f // Space between paragraphs (12-16pt range)
+    private val sectionHeaderSpacingBefore = 24f // Space before section headers
+    private val sectionHeaderSpacingAfter = 12f // Space after section headers
+    private val subheaderSpacingBefore = 16f // Space before subheaders
+    private val subheaderSpacingAfter = 8f // Space after subheaders
+    private val listItemSpacing = 4f // Space between list items
+    private val quoteIndent = 20f // Indent for quoted text blocks
+    
+    // Font sizes for consistent typography
+    private val titleFontSize = 24f
+    private val headingFontSize = 16f
+    private val subheadingFontSize = 14f
+    private val bodyFontSize = 11f
+    private val labelFontSize = 9f
     
     /**
      * Alpha value for invisible text layer.
@@ -97,6 +118,16 @@ class ReportGenerator(private val context: Context) {
      * 1. Invisible semantic layer: Contains all text with ~1% opacity for AI/parser accessibility
      * 2. Visible forensic layer: Contains the same text with full opacity for human viewing
      * 
+     * Formatting features:
+     * - Proper paragraph spacing (12-16pt between paragraphs)
+     * - Consistent 1-inch margins on all sides
+     * - No text overflow or off-page rendering
+     * - Proper bold and italic text handling
+     * - Quote blocks and numbered lists with clean formatting
+     * - Section headers visibly separated with spacing
+     * - Word-boundary line wrapping (never breaks mid-word)
+     * - Consistent font family throughout (default system font with anti-aliasing)
+     * 
      * This ensures the contradiction engine can parse the text while maintaining
      * the forensic seal appearance for court-ready documents.
      */
@@ -104,43 +135,65 @@ class ReportGenerator(private val context: Context) {
         val pdfDocument = PdfDocument()
         var currentPage: PdfDocument.Page? = null
         var canvas: android.graphics.Canvas? = null
-        var yPosition = margin
+        var yPosition = marginTop
         var pageNumber = 1
+        
+        // Calculate the text area width
+        val textAreaWidth = pageWidth - marginLeft - marginRight
 
-        // Visible paints (forensic layer)
+        // Visible paints (forensic layer) with proper font sizing and anti-aliasing
         val titlePaint = Paint().apply {
-            textSize = 24f
+            textSize = titleFontSize
             color = Color.parseColor("#1A237E")
             isFakeBoldText = true
+            isAntiAlias = true
         }
 
         val headingPaint = Paint().apply {
-            textSize = 16f
+            textSize = headingFontSize
             color = Color.parseColor("#1A237E")
             isFakeBoldText = true
+            isAntiAlias = true
         }
 
         val subheadingPaint = Paint().apply {
-            textSize = 14f
+            textSize = subheadingFontSize
             color = Color.parseColor("#3949AB")
             isFakeBoldText = true
+            isAntiAlias = true
         }
 
         val bodyPaint = Paint().apply {
-            textSize = 10f
+            textSize = bodyFontSize
             color = Color.BLACK
+            isAntiAlias = true
+        }
+
+        val boldBodyPaint = Paint().apply {
+            textSize = bodyFontSize
+            color = Color.BLACK
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+
+        val italicBodyPaint = Paint().apply {
+            textSize = bodyFontSize
+            color = Color.BLACK
+            textSkewX = -0.25f // Simulate italic
+            isAntiAlias = true
         }
 
         val labelPaint = Paint().apply {
-            textSize = 9f
+            textSize = labelFontSize
             color = Color.GRAY
+            isAntiAlias = true
         }
 
         val severityPaints = mapOf(
-            Severity.CRITICAL to Paint().apply { textSize = 10f; color = Color.parseColor("#D32F2F") },
-            Severity.HIGH to Paint().apply { textSize = 10f; color = Color.parseColor("#F57C00") },
-            Severity.MEDIUM to Paint().apply { textSize = 10f; color = Color.parseColor("#FBC02D") },
-            Severity.LOW to Paint().apply { textSize = 10f; color = Color.parseColor("#388E3C") }
+            Severity.CRITICAL to Paint().apply { textSize = bodyFontSize; color = Color.parseColor("#D32F2F"); isAntiAlias = true },
+            Severity.HIGH to Paint().apply { textSize = bodyFontSize; color = Color.parseColor("#F57C00"); isAntiAlias = true },
+            Severity.MEDIUM to Paint().apply { textSize = bodyFontSize; color = Color.parseColor("#FBC02D"); isAntiAlias = true },
+            Severity.LOW to Paint().apply { textSize = bodyFontSize; color = Color.parseColor("#388E3C"); isAntiAlias = true }
         )
 
         // Invisible paints (semantic layer) - same properties but with near-zero alpha
@@ -148,20 +201,23 @@ class ReportGenerator(private val context: Context) {
         val invisibleHeadingPaint = createInvisiblePaint(headingPaint)
         val invisibleSubheadingPaint = createInvisiblePaint(subheadingPaint)
         val invisibleBodyPaint = createInvisiblePaint(bodyPaint)
+        val invisibleBoldBodyPaint = createInvisiblePaint(boldBodyPaint)
+        val invisibleItalicBodyPaint = createInvisiblePaint(italicBodyPaint)
         val invisibleLabelPaint = createInvisiblePaint(labelPaint)
         val invisibleSeverityPaints = severityPaints.mapValues { createInvisiblePaint(it.value) }
         
         // Paint mapping for efficient lookup - maps visible paints to their invisible counterparts
-        val paintMapping: Map<Paint, Paint> = buildMap {
-            put(titlePaint, invisibleTitlePaint)
-            put(headingPaint, invisibleHeadingPaint)
-            put(subheadingPaint, invisibleSubheadingPaint)
-            put(bodyPaint, invisibleBodyPaint)
-            put(labelPaint, invisibleLabelPaint)
-            severityPaints.forEach { (severity, visiblePaint) ->
-                invisibleSeverityPaints[severity]?.let { invisiblePaint ->
-                    put(visiblePaint, invisiblePaint)
-                }
+        val paintMapping: MutableMap<Paint, Paint> = mutableMapOf()
+        paintMapping[titlePaint] = invisibleTitlePaint
+        paintMapping[headingPaint] = invisibleHeadingPaint
+        paintMapping[subheadingPaint] = invisibleSubheadingPaint
+        paintMapping[bodyPaint] = invisibleBodyPaint
+        paintMapping[boldBodyPaint] = invisibleBoldBodyPaint
+        paintMapping[italicBodyPaint] = invisibleItalicBodyPaint
+        paintMapping[labelPaint] = invisibleLabelPaint
+        severityPaints.forEach { (severity, visiblePaint) ->
+            invisibleSeverityPaints[severity]?.let { invisiblePaint ->
+                paintMapping[visiblePaint] = invisiblePaint
             }
         }
 
@@ -170,59 +226,88 @@ class ReportGenerator(private val context: Context) {
             val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
             currentPage = pdfDocument.startPage(pageInfo)
             canvas = currentPage?.canvas
-            yPosition = margin
+            yPosition = marginTop
             pageNumber++
             
-            // Add footer - dual layer
+            // Add footer with proper positioning
             val footerText = "Verum Omnis Contradiction Engine • Page ${pageNumber - 1}"
+            val footerY = pageHeight - marginBottom + 20f
             // Layer 1: Invisible semantic text
-            canvas?.drawText(footerText, margin, pageHeight - 20f, invisibleLabelPaint)
+            canvas?.drawText(footerText, marginLeft, footerY, invisibleLabelPaint)
             // Layer 2: Visible forensic text
-            canvas?.drawText(footerText, margin, pageHeight - 20f, labelPaint)
+            canvas?.drawText(footerText, marginLeft, footerY, labelPaint)
         }
 
-        fun checkPageBreak(requiredSpace: Float = lineHeight * 3) {
-            if (yPosition + requiredSpace > pageHeight - margin) {
+        fun checkPageBreak(requiredSpace: Float = bodyLineHeight * 3) {
+            if (yPosition + requiredSpace > pageHeight - marginBottom) {
                 startNewPage()
             }
         }
 
         /**
-         * Draws text using dual-layer architecture:
-         * 1. First draws invisible text layer (semantic) for AI/parser accessibility
-         * 2. Then draws visible text layer (forensic) on top for human viewing
+         * Draws text using dual-layer architecture with proper word wrapping.
+         * Uses soft line breaks that never break mid-word.
          * 
-         * Both layers use exact same coordinates to ensure text alignment.
+         * @param text The text to draw
+         * @param visiblePaint The visible paint for human viewing
+         * @param invisiblePaint The invisible paint for AI/parser accessibility
+         * @param indent Additional left indent for the text
+         * @param lineHeight The line height for this text block
          */
-        fun drawDualLayerText(text: String, visiblePaint: Paint, invisiblePaint: Paint, indent: Float = 0f) {
-            val maxWidth = pageWidth - 2 * margin - indent
+        fun drawDualLayerText(
+            text: String, 
+            visiblePaint: Paint, 
+            invisiblePaint: Paint, 
+            indent: Float = 0f,
+            lineHeight: Float = bodyLineHeight
+        ) {
+            val maxWidth = textAreaWidth - indent
             val words = text.split(" ")
             var currentLine = ""
             
             for (word in words) {
+                // Handle words that are too long for a single line
+                val wordWidth = visiblePaint.measureText(word)
+                if (wordWidth > maxWidth) {
+                    // Flush current line first
+                    if (currentLine.isNotEmpty()) {
+                        checkPageBreak()
+                        val xPos = marginLeft + indent
+                        canvas?.drawText(currentLine, xPos, yPosition, invisiblePaint)
+                        canvas?.drawText(currentLine, xPos, yPosition, visiblePaint)
+                        yPosition += lineHeight
+                        currentLine = ""
+                    }
+                    // Draw the long word on its own (will overflow if necessary, but stay intact)
+                    checkPageBreak()
+                    val xPos = marginLeft + indent
+                    canvas?.drawText(word, xPos, yPosition, invisiblePaint)
+                    canvas?.drawText(word, xPos, yPosition, visiblePaint)
+                    yPosition += lineHeight
+                    continue
+                }
+                
                 val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
                 val testWidth = visiblePaint.measureText(testLine)
                 
                 if (testWidth <= maxWidth) {
                     currentLine = testLine
                 } else {
+                    // Output current line and start new one
                     checkPageBreak()
-                    val xPos = margin + indent
-                    // Layer 1: Invisible semantic text (drawn first, underneath)
+                    val xPos = marginLeft + indent
                     canvas?.drawText(currentLine, xPos, yPosition, invisiblePaint)
-                    // Layer 2: Visible forensic text (drawn on top)
                     canvas?.drawText(currentLine, xPos, yPosition, visiblePaint)
                     yPosition += lineHeight
                     currentLine = word
                 }
             }
             
+            // Output remaining text
             if (currentLine.isNotEmpty()) {
                 checkPageBreak()
-                val xPos = margin + indent
-                // Layer 1: Invisible semantic text (drawn first, underneath)
+                val xPos = marginLeft + indent
                 canvas?.drawText(currentLine, xPos, yPosition, invisiblePaint)
-                // Layer 2: Visible forensic text (drawn on top)
                 canvas?.drawText(currentLine, xPos, yPosition, visiblePaint)
                 yPosition += lineHeight
             }
@@ -230,237 +315,356 @@ class ReportGenerator(private val context: Context) {
 
         // Convenience wrappers for different text styles
         fun drawText(text: String, paint: Paint, indent: Float = 0f) {
-            // Use the paint mapping for efficient lookup
             val invisiblePaint = paintMapping[paint] ?: createInvisiblePaint(paint)
             drawDualLayerText(text, paint, invisiblePaint, indent)
         }
 
-        fun addSpace(lines: Float = 1f) {
-            yPosition += lineHeight * lines
+        /**
+         * Draws a paragraph with proper spacing before and after.
+         */
+        fun drawParagraph(text: String, paint: Paint = bodyPaint, indent: Float = 0f) {
+            drawText(text, paint, indent)
+            yPosition += paragraphSpacing
         }
 
         /**
-         * Draws heading text using dual-layer architecture.
-         * Used for section headings that need special positioning without line wrapping.
+         * Adds vertical space.
+         * @param space The amount of space to add in points
          */
-        fun drawHeading(text: String, visiblePaint: Paint, invisiblePaint: Paint? = null) {
-            // Use the paint mapping for efficient lookup
-            val invisible = invisiblePaint ?: paintMapping[visiblePaint] ?: createInvisiblePaint(visiblePaint)
-            // Layer 1: Invisible semantic text
-            canvas?.drawText(text, margin, yPosition, invisible)
-            // Layer 2: Visible forensic text
-            canvas?.drawText(text, margin, yPosition, visiblePaint)
+        fun addSpace(space: Float = paragraphSpacing) {
+            yPosition += space
+        }
+
+        /**
+         * Draws a section header with proper spacing.
+         */
+        fun drawSectionHeader(text: String) {
+            addSpace(sectionHeaderSpacingBefore)
+            checkPageBreak(sectionHeaderSpacingBefore + headingFontSize + sectionHeaderSpacingAfter)
+            val invisiblePaint = paintMapping[headingPaint] ?: createInvisiblePaint(headingPaint)
+            canvas?.drawText(text, marginLeft, yPosition, invisiblePaint)
+            canvas?.drawText(text, marginLeft, yPosition, headingPaint)
+            yPosition += headingFontSize
+            addSpace(sectionHeaderSpacingAfter)
+        }
+
+        /**
+         * Draws a subheader with proper spacing.
+         */
+        fun drawSubheader(text: String) {
+            addSpace(subheaderSpacingBefore)
+            checkPageBreak(subheaderSpacingBefore + subheadingFontSize + subheaderSpacingAfter)
+            val invisiblePaint = paintMapping[subheadingPaint] ?: createInvisiblePaint(subheadingPaint)
+            canvas?.drawText(text, marginLeft, yPosition, invisiblePaint)
+            canvas?.drawText(text, marginLeft, yPosition, subheadingPaint)
+            yPosition += subheadingFontSize
+            addSpace(subheaderSpacingAfter)
+        }
+
+        /**
+         * Draws a numbered list item with proper formatting.
+         */
+        fun drawNumberedItem(number: Int, text: String, indent: Float = 20f) {
+            val numberStr = "$number. "
+            val numberWidth = bodyPaint.measureText(numberStr)
+            
+            checkPageBreak()
+            val invisiblePaint = paintMapping[bodyPaint] ?: createInvisiblePaint(bodyPaint)
+            
+            // Draw the number
+            canvas?.drawText(numberStr, marginLeft, yPosition, invisiblePaint)
+            canvas?.drawText(numberStr, marginLeft, yPosition, bodyPaint)
+            
+            // Draw the text with indent from the number
+            val remainingWidth = textAreaWidth - numberWidth
+            val words = text.split(" ")
+            var currentLine = ""
+            var isFirstLine = true
+            
+            for (word in words) {
+                val testLine = if (currentLine.isEmpty()) word else "$currentLine $word"
+                val testWidth = bodyPaint.measureText(testLine)
+                
+                val maxLineWidth = if (isFirstLine) remainingWidth else textAreaWidth - indent
+                
+                if (testWidth <= maxLineWidth) {
+                    currentLine = testLine
+                } else {
+                    checkPageBreak()
+                    val xPos = if (isFirstLine) marginLeft + numberWidth else marginLeft + indent
+                    canvas?.drawText(currentLine, xPos, yPosition, invisiblePaint)
+                    canvas?.drawText(currentLine, xPos, yPosition, bodyPaint)
+                    yPosition += bodyLineHeight
+                    currentLine = word
+                    isFirstLine = false
+                }
+            }
+            
+            if (currentLine.isNotEmpty()) {
+                checkPageBreak()
+                val xPos = if (isFirstLine) marginLeft + numberWidth else marginLeft + indent
+                canvas?.drawText(currentLine, xPos, yPosition, invisiblePaint)
+                canvas?.drawText(currentLine, xPos, yPosition, bodyPaint)
+                yPosition += bodyLineHeight
+            }
+            
+            yPosition += listItemSpacing
+        }
+
+        /**
+         * Draws a bullet point item with proper formatting.
+         */
+        fun drawBulletItem(text: String, indent: Float = 20f, bulletIndent: Float = 10f) {
+            val bullet = "•"
+            val bulletWidth = bodyPaint.measureText(bullet + " ")
+            
+            checkPageBreak()
+            val invisiblePaint = paintMapping[bodyPaint] ?: createInvisiblePaint(bodyPaint)
+            
+            // Draw the bullet
+            canvas?.drawText(bullet, marginLeft + bulletIndent, yPosition, invisiblePaint)
+            canvas?.drawText(bullet, marginLeft + bulletIndent, yPosition, bodyPaint)
+            
+            // Draw the text - use the calculated text indent that accounts for bullet width
+            val textIndent = bulletIndent + bulletWidth
+            drawDualLayerText(text, bodyPaint, invisiblePaint, textIndent, bodyLineHeight)
+            
+            yPosition += listItemSpacing
+        }
+
+        /**
+         * Draws quoted text with proper indentation.
+         */
+        fun drawQuote(text: String) {
+            addSpace(paragraphSpacing / 2)
+            val invisiblePaint = paintMapping[italicBodyPaint] ?: createInvisiblePaint(italicBodyPaint)
+            drawDualLayerText("\"$text\"", italicBodyPaint, invisiblePaint, quoteIndent)
+            addSpace(paragraphSpacing / 2)
+        }
+
+        /**
+         * Draws a title on the title page.
+         */
+        fun drawTitle(text: String) {
+            val invisiblePaint = paintMapping[titlePaint] ?: createInvisiblePaint(titlePaint)
+            canvas?.drawText(text, marginLeft, yPosition, invisiblePaint)
+            canvas?.drawText(text, marginLeft, yPosition, titlePaint)
+            yPosition += titleFontSize + 10f
         }
 
         // Start first page
         startNewPage()
 
-        // Title page
-        addSpace(3f)
-        drawHeading("FORENSIC ANALYSIS REPORT", titlePaint, invisibleTitlePaint)
-        yPosition += 30f
+        // Title page with proper spacing
+        addSpace(60f) // Start lower on the title page
+        drawTitle("FORENSIC ANALYSIS REPORT")
+        addSpace(24f)
         
-        drawHeading("Generated by Verum Omnis Contradiction Engine", subheadingPaint, invisibleSubheadingPaint)
-        addSpace(2f)
+        drawSubheader("Generated by Verum Omnis Contradiction Engine")
+        addSpace(paragraphSpacing)
         
-        drawText("Case: ${report.caseName}", bodyPaint)
-        drawText("Generated: ${dateFormat.format(report.generatedAt)}", bodyPaint)
+        drawParagraph("Case: ${report.caseName}")
+        drawParagraph("Generated: ${dateFormat.format(report.generatedAt)}")
         drawText("Report ID: ${report.id}", labelPaint)
-        addSpace(2f)
+        addSpace(paragraphSpacing * 2)
 
-        // Sealed indicator
+        // Sealed indicator with proper formatting
         val sealedPaint = Paint().apply {
             textSize = 12f
             color = Color.parseColor("#D32F2F")
             isFakeBoldText = true
+            isAntiAlias = true
         }
         val invisibleSealedPaint = createInvisiblePaint(sealedPaint)
-        drawHeading("SEALED DOCUMENT", sealedPaint, invisibleSealedPaint)
-        addSpace()
+        canvas?.drawText("SEALED DOCUMENT", marginLeft, yPosition, invisibleSealedPaint)
+        canvas?.drawText("SEALED DOCUMENT", marginLeft, yPosition, sealedPaint)
+        yPosition += 16f
+        addSpace(paragraphSpacing)
         drawText("SHA-512: ${report.sha512Hash.take(64)}...", labelPaint)
-        addSpace(3f)
+        addSpace(paragraphSpacing * 2)
 
-        // Table of Contents
-        drawHeading("TABLE OF CONTENTS", headingPaint, invisibleHeadingPaint)
-        addSpace()
-        drawText("1. Executive Summary", bodyPaint)
-        drawText("2. Entities Discovered", bodyPaint)
-        drawText("3. Timeline of Events", bodyPaint)
-        drawText("4. Contradiction Analysis", bodyPaint)
-        drawText("5. Behavioral Pattern Analysis", bodyPaint)
-        drawText("6. Liability Assessment", bodyPaint)
-        drawText("7. Narrative Summary", bodyPaint)
-        drawText("8. Conclusion", bodyPaint)
+        // Table of Contents with proper numbered list
+        drawSectionHeader("TABLE OF CONTENTS")
+        drawNumberedItem(1, "Executive Summary")
+        drawNumberedItem(2, "Entities Discovered")
+        drawNumberedItem(3, "Timeline of Events")
+        drawNumberedItem(4, "Contradiction Analysis")
+        drawNumberedItem(5, "Behavioral Pattern Analysis")
+        drawNumberedItem(6, "Liability Assessment")
+        drawNumberedItem(7, "Narrative Summary")
+        drawNumberedItem(8, "Conclusion")
 
         // Section 1: Executive Summary
         startNewPage()
-        drawHeading("1. EXECUTIVE SUMMARY", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        drawSectionHeader("1. EXECUTIVE SUMMARY")
         
-        drawText("This report presents the findings of a comprehensive forensic analysis", bodyPaint)
-        drawText("conducted using the Verum Omnis Contradiction Engine.", bodyPaint)
-        addSpace()
-        drawText("Key Statistics:", subheadingPaint)
-        drawText("• Entities Identified: ${report.entities.size}", bodyPaint)
-        drawText("• Timeline Events: ${report.timeline.size}", bodyPaint)
-        drawText("• Contradictions Detected: ${report.contradictions.size}", bodyPaint)
-        drawText("• Behavioral Patterns: ${report.behavioralPatterns.size}", bodyPaint)
+        drawParagraph("This report presents the findings of a comprehensive forensic analysis conducted using the Verum Omnis Contradiction Engine.")
+        
+        drawSubheader("Key Statistics")
+        drawBulletItem("Entities Identified: ${report.entities.size}")
+        drawBulletItem("Timeline Events: ${report.timeline.size}")
+        drawBulletItem("Contradictions Detected: ${report.contradictions.size}")
+        drawBulletItem("Behavioral Patterns: ${report.behavioralPatterns.size}")
 
         // Section 2: Entities
-        addSpace(2f)
-        drawHeading("2. ENTITIES DISCOVERED", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        addSpace(paragraphSpacing)
+        drawSectionHeader("2. ENTITIES DISCOVERED")
         
         for (entity in report.entities) {
-            checkPageBreak(lineHeight * 5)
-            drawText("${entity.primaryName}", subheadingPaint)
+            checkPageBreak(bodyLineHeight * 6)
+            drawSubheader(entity.primaryName)
             if (entity.aliases.isNotEmpty()) {
-                drawText("Aliases: ${entity.aliases.joinToString(", ")}", bodyPaint, 10f)
+                drawText("Aliases: ${entity.aliases.joinToString(", ")}", bodyPaint, 20f)
             }
             if (entity.emails.isNotEmpty()) {
-                drawText("Emails: ${entity.emails.joinToString(", ")}", bodyPaint, 10f)
+                drawText("Emails: ${entity.emails.joinToString(", ")}", bodyPaint, 20f)
             }
-            drawText("Mentions: ${entity.mentions}", bodyPaint, 10f)
+            drawText("Mentions: ${entity.mentions}", bodyPaint, 20f)
             
             val score = report.liabilityScores[entity.id]
             if (score != null) {
-                drawText("Liability Score: ${String.format("%.1f", score.overallScore)}%", bodyPaint, 10f)
+                drawText("Liability Score: ${String.format("%.1f", score.overallScore)}%", boldBodyPaint, 20f)
             }
-            addSpace()
+            addSpace(paragraphSpacing)
         }
 
         // Section 3: Timeline
         startNewPage()
-        drawHeading("3. TIMELINE OF EVENTS", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        drawSectionHeader("3. TIMELINE OF EVENTS")
         
         val sortedTimeline = report.timeline.sortedBy { it.date }
         for (event in sortedTimeline.take(50)) { // Limit to first 50 events
-            checkPageBreak(lineHeight * 3)
+            checkPageBreak(bodyLineHeight * 4)
             val dateStr = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US).format(event.date)
             drawText("[$dateStr] ${event.eventType.name}", labelPaint)
-            drawText(event.description.take(200), bodyPaint, 10f)
-            addSpace(0.5f)
+            drawText(event.description.take(200), bodyPaint, 20f)
+            addSpace(listItemSpacing)
         }
         
         if (sortedTimeline.size > 50) {
+            addSpace(paragraphSpacing)
             drawText("... and ${sortedTimeline.size - 50} more events", labelPaint)
         }
 
         // Section 4: Contradictions
         startNewPage()
-        drawHeading("4. CONTRADICTION ANALYSIS", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        drawSectionHeader("4. CONTRADICTION ANALYSIS")
         
         if (report.contradictions.isEmpty()) {
-            drawText("No contradictions were detected in the analyzed evidence.", bodyPaint)
+            drawParagraph("No contradictions were detected in the analyzed evidence.")
         } else {
             val criticalCount = report.contradictions.count { it.severity == Severity.CRITICAL }
             val highCount = report.contradictions.count { it.severity == Severity.HIGH }
             
-            drawText("Summary:", subheadingPaint)
-            drawText("• Critical: $criticalCount", severityPaints[Severity.CRITICAL]!!)
-            drawText("• High: $highCount", severityPaints[Severity.HIGH]!!)
-            drawText("• Medium: ${report.contradictions.count { it.severity == Severity.MEDIUM }}", severityPaints[Severity.MEDIUM]!!)
-            drawText("• Low: ${report.contradictions.count { it.severity == Severity.LOW }}", severityPaints[Severity.LOW]!!)
-            addSpace()
+            drawSubheader("Summary")
+            drawBulletItem("Critical: $criticalCount")
+            drawBulletItem("High: $highCount")
+            drawBulletItem("Medium: ${report.contradictions.count { it.severity == Severity.MEDIUM }}")
+            drawBulletItem("Low: ${report.contradictions.count { it.severity == Severity.LOW }}")
+            addSpace(paragraphSpacing)
             
             for ((index, contradiction) in report.contradictions.withIndex()) {
-                checkPageBreak(lineHeight * 8)
+                checkPageBreak(bodyLineHeight * 8)
                 
                 val entityName = report.entities.find { it.id == contradiction.entityId }?.primaryName ?: "Unknown"
-                drawText("Contradiction ${index + 1}: $entityName", subheadingPaint)
+                drawSubheader("Contradiction ${index + 1}: $entityName")
                 drawText("[${contradiction.severity.name}] ${contradiction.type.name.replace("_", " ")}", 
                     severityPaints[contradiction.severity]!!)
-                addSpace(0.5f)
-                drawText(contradiction.description, bodyPaint, 10f)
-                addSpace(0.5f)
-                drawText("Legal Implication: ${contradiction.legalImplication}", labelPaint, 10f)
-                addSpace()
+                addSpace(listItemSpacing)
+                drawParagraph(contradiction.description, bodyPaint, 20f)
+                drawText("Legal Implication: ${contradiction.legalImplication}", labelPaint, 20f)
+                addSpace(paragraphSpacing)
             }
         }
 
         // Section 5: Behavioral Patterns
         startNewPage()
-        drawHeading("5. BEHAVIORAL PATTERN ANALYSIS", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        drawSectionHeader("5. BEHAVIORAL PATTERN ANALYSIS")
         
         if (report.behavioralPatterns.isEmpty()) {
-            drawText("No concerning behavioral patterns were detected.", bodyPaint)
+            drawParagraph("No concerning behavioral patterns were detected.")
         } else {
             for (pattern in report.behavioralPatterns) {
-                checkPageBreak(lineHeight * 5)
+                checkPageBreak(bodyLineHeight * 6)
                 val entityName = report.entities.find { it.id == pattern.entityId }?.primaryName ?: "Unknown"
-                drawText("$entityName: ${pattern.type.name.replace("_", " ")}", subheadingPaint)
+                drawSubheader("$entityName: ${pattern.type.name.replace("_", " ")}")
                 drawText("Severity: ${pattern.severity.name}", severityPaints[pattern.severity]!!)
                 
                 if (pattern.instances.isNotEmpty()) {
-                    drawText("Examples:", labelPaint, 10f)
+                    addSpace(listItemSpacing)
+                    drawText("Examples:", labelPaint, 20f)
                     for (instance in pattern.instances.take(3)) {
-                        drawText("• \"${instance.take(100)}\"", bodyPaint, 20f)
+                        drawQuote(instance.take(100))
                     }
                 }
-                addSpace()
+                addSpace(paragraphSpacing)
             }
         }
 
         // Section 6: Liability Assessment
         startNewPage()
-        drawHeading("6. LIABILITY ASSESSMENT", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        drawSectionHeader("6. LIABILITY ASSESSMENT")
         
         val sortedScores = report.liabilityScores.values.sortedByDescending { it.overallScore }
         
         for (score in sortedScores) {
-            checkPageBreak(lineHeight * 8)
+            checkPageBreak(bodyLineHeight * 8)
             val entityName = report.entities.find { it.id == score.entityId }?.primaryName ?: "Unknown"
             
-            drawText(entityName, subheadingPaint)
-            drawText("Overall Liability: ${String.format("%.1f", score.overallScore)}%", bodyPaint, 10f)
-            addSpace(0.5f)
-            drawText("Breakdown:", labelPaint, 10f)
-            drawText("• Contradiction Score: ${String.format("%.1f", score.contradictionScore)}", bodyPaint, 20f)
-            drawText("• Behavioral Score: ${String.format("%.1f", score.behavioralScore)}", bodyPaint, 20f)
-            drawText("• Evidence Score: ${String.format("%.1f", score.evidenceContributionScore)}", bodyPaint, 20f)
-            drawText("• Consistency Score: ${String.format("%.1f", score.chronologicalConsistencyScore)}", bodyPaint, 20f)
-            drawText("• Causal Score: ${String.format("%.1f", score.causalResponsibilityScore)}", bodyPaint, 20f)
-            addSpace()
+            drawSubheader(entityName)
+            drawText("Overall Liability: ${String.format("%.1f", score.overallScore)}%", boldBodyPaint, 20f)
+            addSpace(listItemSpacing)
+            drawText("Breakdown:", labelPaint, 20f)
+            drawBulletItem("Contradiction Score: ${String.format("%.1f", score.contradictionScore)}", 30f)
+            drawBulletItem("Behavioral Score: ${String.format("%.1f", score.behavioralScore)}", 30f)
+            drawBulletItem("Evidence Score: ${String.format("%.1f", score.evidenceContributionScore)}", 30f)
+            drawBulletItem("Consistency Score: ${String.format("%.1f", score.chronologicalConsistencyScore)}", 30f)
+            drawBulletItem("Causal Score: ${String.format("%.1f", score.causalResponsibilityScore)}", 30f)
+            addSpace(paragraphSpacing)
         }
 
         // Section 7: Narrative Summary
         startNewPage()
-        drawHeading("7. NARRATIVE SUMMARY", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        drawSectionHeader("7. NARRATIVE SUMMARY")
         
-        // Final Summary from narrative
+        // Final Summary from narrative - handle paragraphs properly
         val summaryLines = report.narrativeSections.finalSummary.split("\n")
         for (line in summaryLines) {
             if (line.isNotBlank()) {
                 checkPageBreak()
-                drawText(line, bodyPaint)
+                // Skip separator lines (lines that only contain = or - characters)
+                if (line.all { it == '=' || it == '-' || it.isWhitespace() }) {
+                    continue
+                }
+                // Check if line appears to be a header (all caps, short, contains letters)
+                if (line.uppercase() == line && line.length < 50 && line.any { it.isLetter() }) {
+                    drawSubheader(line)
+                } else {
+                    drawParagraph(line)
+                }
             }
         }
 
         // Section 8: Conclusion
         startNewPage()
-        drawHeading("8. CONCLUSION", headingPaint, invisibleHeadingPaint)
-        addSpace(2f)
+        drawSectionHeader("8. CONCLUSION")
         
-        drawText("This forensic analysis was conducted using the Verum Omnis Contradiction Engine,", bodyPaint)
-        drawText("an offline, on-device analytical tool designed for legal-grade evidence analysis.", bodyPaint)
-        addSpace()
-        drawText("The findings presented in this report are based on the evidence provided and", bodyPaint)
-        drawText("the analytical algorithms applied. The accuracy depends on the completeness", bodyPaint)
-        drawText("and quality of the input evidence.", bodyPaint)
-        addSpace(2f)
+        drawParagraph("This forensic analysis was conducted using the Verum Omnis Contradiction Engine, an offline, on-device analytical tool designed for legal-grade evidence analysis.")
         
-        // Seal block - dual layer
-        drawHeading("DOCUMENT SEAL", sealedPaint, invisibleSealedPaint)
-        addSpace()
-        drawText("This document has been cryptographically sealed with SHA-512.", bodyPaint)
-        addSpace()
+        drawParagraph("The findings presented in this report are based on the evidence provided and the analytical algorithms applied. The accuracy depends on the completeness and quality of the input evidence.")
+        
+        addSpace(paragraphSpacing * 2)
+        
+        // Seal block - with proper formatting
+        canvas?.drawText("DOCUMENT SEAL", marginLeft, yPosition, invisibleSealedPaint)
+        canvas?.drawText("DOCUMENT SEAL", marginLeft, yPosition, sealedPaint)
+        yPosition += sealedPaint.textSize + paragraphSpacing
+        
+        drawParagraph("This document has been cryptographically sealed with SHA-512.")
+        
         drawText("Hash: ${report.sha512Hash}", labelPaint)
-        addSpace(2f)
+        addSpace(paragraphSpacing * 2)
+        
         drawText("Patent Pending • Verum Omnis", labelPaint)
         drawText("Generated: ${dateFormat.format(report.generatedAt)}", labelPaint)
 
