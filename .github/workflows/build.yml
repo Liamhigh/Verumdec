@@ -31,6 +31,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       
+      - name: Run Unit Tests
+        run: ./gradlew test
+      
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: app/build/reports/tests/
+          retention-days: 14
+      
       - name: Build Debug APK
         run: ./gradlew assembleDebug
       
@@ -41,15 +52,50 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
       
-      - name: Build Release APK (unsigned)
+      # Decode keystore from base64 secret (only if secrets are available)
+      - name: Decode Keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > ${{ github.workspace }}/keystore.jks
+      
+      # Build signed release APK (if keystore is configured)
+      - name: Build Signed Release APK
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
       
-      - name: Upload Release APK
+      # Build unsigned release APK (if keystore is not configured)
+      - name: Build Unsigned Release APK
+        if: ${{ secrets.KEYSTORE_BASE64 == '' }}
+        run: ./gradlew assembleRelease
+      
+      - name: Upload Signed Release APK
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: verumdec-release-apk
+          name: verumdec-release-signed-apk
+          path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+      
+      - name: Upload Unsigned Release APK
+        if: ${{ secrets.KEYSTORE_BASE64 == '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: verumdec-release-unsigned-apk
           path: app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 30
+      
+      # Clean up keystore after build
+      - name: Cleanup Keystore
+        if: always()
+        run: |
+          if [ -f "${{ github.workspace }}/keystore.jks" ]; then
+            rm -f ${{ github.workspace }}/keystore.jks
+          fi
 
   lint:
     runs-on: ubuntu-latest

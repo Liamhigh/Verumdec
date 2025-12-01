@@ -306,23 +306,60 @@ versionName = "1.0.0"  // Update for major/minor/patch
 
 ### Release APK Signing
 
+#### Option 1: Local Signing
+
 ```bash
 # Generate keystore (first time only)
 keytool -genkey -v -keystore verumdec.keystore \
   -keyalg RSA -keysize 2048 -validity 10000 \
   -alias verumdec
 
-# Add to local.properties
-echo "
-storeFile=../verumdec.keystore
-storePassword=YOUR_PASSWORD
-keyAlias=verumdec
-keyPassword=YOUR_PASSWORD
-" >> local.properties
+# Add to local.properties (DO NOT commit this file!)
+cat >> local.properties << EOF
+KEYSTORE_PATH=../verumdec.keystore
+KEYSTORE_PASSWORD=YOUR_PASSWORD
+KEY_ALIAS=verumdec
+KEY_PASSWORD=YOUR_PASSWORD
+EOF
 
 # Build signed release APK
 ./gradlew assembleRelease
 ```
+
+#### Option 2: GitHub Actions Signing (CI/CD)
+
+To enable signed APK builds in GitHub Actions, configure the following repository secrets:
+
+1. **Generate Keystore** (if you haven't already):
+   ```bash
+   keytool -genkey -v -keystore verumdec.keystore \
+     -keyalg RSA -keysize 2048 -validity 10000 \
+     -alias verumdec
+   ```
+
+2. **Convert Keystore to Base64**:
+   ```bash
+   base64 -i verumdec.keystore | pbcopy  # macOS
+   base64 verumdec.keystore              # Linux (copy output)
+   ```
+
+3. **Add GitHub Secrets** (Settings → Secrets and variables → Actions):
+   - `KEYSTORE_BASE64`: Base64-encoded keystore file content
+   - `KEYSTORE_PASSWORD`: Password used to create the keystore
+   - `KEY_ALIAS`: Key alias (e.g., "verumdec")
+   - `KEY_PASSWORD`: Key password
+
+4. **Verify**: Push to main/develop branch or create a PR to trigger the workflow.
+
+The workflow will automatically:
+- Build and test the app
+- Create a signed release APK (if secrets are configured)
+- Upload both debug and signed release APKs as artifacts
+
+**Security Notes**:
+- Never commit keystore files or passwords to the repository
+- Keep a backup of your keystore file - losing it means you cannot update the app
+- Use strong, unique passwords for both keystore and key
 
 ---
 
