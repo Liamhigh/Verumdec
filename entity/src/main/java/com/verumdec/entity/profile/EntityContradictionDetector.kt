@@ -124,6 +124,34 @@ class EntityContradictionDetector {
         
         return contradictions
     }
+
+    /**
+     * Detect entity-level contradictions using provided profiles.
+     *
+     * @param externalProfiles Map of entity IDs to EntityProfiles
+     * @return List of detected contradictions
+     */
+    fun detectEntityContradictions(externalProfiles: Map<String, EntityProfile>): List<Contradiction> {
+        val contradictions = mutableListOf<Contradiction>()
+        
+        // Check each entity for internal contradictions
+        for (profile in externalProfiles.values) {
+            contradictions.addAll(detectInternalContradictions(profile))
+            contradictions.addAll(detectFinancialContradictions(profile))
+        }
+        
+        // Check for cross-entity contradictions
+        val profileList = externalProfiles.values.toList()
+        for (i in profileList.indices) {
+            for (j in i + 1 until profileList.size) {
+                contradictions.addAll(
+                    detectCrossEntityContradictions(profileList[i], profileList[j])
+                )
+            }
+        }
+        
+        return contradictions
+    }
     
     /**
      * Detect internal contradictions within an entity's claims.
