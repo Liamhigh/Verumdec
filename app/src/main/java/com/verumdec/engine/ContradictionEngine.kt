@@ -10,6 +10,9 @@ import java.io.File
 /**
  * Main Contradiction Engine
  * Orchestrates the full forensic analysis pipeline.
+ * 
+ * @param context Android context required for evidence processing and report generation.
+ *                Can be null for unit testing when only using getSummary() method.
  */
 class ContradictionEngine(private val context: Context?) {
 
@@ -58,7 +61,11 @@ class ContradictionEngine(private val context: Context?) {
             val processedEvidence = mutableListOf<Evidence>()
             val totalEvidence = currentCase.evidence.size
             
-            val processor = evidenceProcessor ?: throw IllegalStateException("Evidence processor requires context")
+            val processor = evidenceProcessor 
+                ?: throw IllegalStateException(
+                    "Evidence processor requires Android context. " +
+                    "Use ContradictionEngine(context) constructor for evidence processing operations."
+                )
             
             for ((index, evidence) in currentCase.evidence.withIndex()) {
                 val uri = evidenceUris[evidence.id] ?: continue
@@ -151,9 +158,14 @@ class ContradictionEngine(private val context: Context?) {
 
     /**
      * Generate and export PDF report.
+     * Requires Android context to be provided in constructor.
      */
     suspend fun generateReport(case: Case): File = withContext(Dispatchers.IO) {
-        val generator = reportGenerator ?: throw IllegalStateException("Report generator requires context")
+        val generator = reportGenerator 
+            ?: throw IllegalStateException(
+                "Report generator requires Android context. " +
+                "Use ContradictionEngine(context) constructor for report generation."
+            )
         
         val behavioralPatterns = behavioralAnalyzer.analyzeBehavior(
             case.evidence, case.entities, case.timeline
