@@ -555,12 +555,14 @@ class ReportGenerator(private val context: Context) {
         } else {
             val criticalCount = report.contradictions.count { it.severity == Severity.CRITICAL }
             val highCount = report.contradictions.count { it.severity == Severity.HIGH }
+            val mediumCount = report.contradictions.count { it.severity == Severity.MEDIUM }
+            val lowCount = report.contradictions.count { it.severity == Severity.LOW }
             
             drawSubheader("Summary")
             drawBulletItem("Critical: $criticalCount")
             drawBulletItem("High: $highCount")
-            drawBulletItem("Medium: ${report.contradictions.count { it.severity == Severity.MEDIUM }}")
-            drawBulletItem("Low: ${report.contradictions.count { it.severity == Severity.LOW }}")
+            drawBulletItem("Medium: $mediumCount")
+            drawBulletItem("Low: $lowCount")
             addSpace(paragraphSpacing)
             
             for ((index, contradiction) in report.contradictions.withIndex()) {
@@ -571,7 +573,7 @@ class ReportGenerator(private val context: Context) {
                 drawText("[${contradiction.severity.name}] ${contradiction.type.name.replace("_", " ")}", 
                     severityPaints[contradiction.severity]!!)
                 addSpace(listItemSpacing)
-                drawParagraph(contradiction.description, bodyPaint, 20f)
+                drawParagraph(contradiction.description, indent = 20f)
                 drawText("Legal Implication: ${contradiction.legalImplication}", labelPaint, 20f)
                 addSpace(paragraphSpacing)
             }
