@@ -9,23 +9,29 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.verumdec.R
+import com.verumdec.contradiction.ContradictionEngine
 import com.verumdec.data.*
 import com.verumdec.databinding.ActivityMainBinding
-import com.verumdec.engine.ContradictionEngine
-import com.verumdec.engine.EvidenceProcessor
+import com.verumdec.forensic.FileSealer
+import com.verumdec.forensic.ForensicEngineFacade
+import com.verumdec.image.ImageEngine
+import com.verumdec.timeline.TimelineEngine
+import com.verumdec.voice.VoiceEngine
 import kotlinx.coroutines.launch
 import java.util.*
 
-class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
+class MainActivity : AppCompatActivity(), com.verumdec.engine.ContradictionEngine.ProgressListener {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var engine: ContradictionEngine
+    private lateinit var engine: com.verumdec.engine.ContradictionEngine
     private lateinit var evidenceAdapter: EvidenceAdapter
+    private lateinit var viewModel: MainViewModel
     
     private var currentCase: Case? = null
     private val evidenceUris = mutableMapOf<String, Uri>()
@@ -41,8 +47,21 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        engine = ContradictionEngine(this)
+        engine = com.verumdec.engine.ContradictionEngine(this)
+        
+        // Initialize the ForensicEngineFacade and ViewModel
+        val forensicEngine = ForensicEngineFacade(
+            ContradictionEngine(),
+            TimelineEngine(),
+            ImageEngine(),
+            VoiceEngine(),
+            FileSealer()
+        )
+        val factory = MainViewModelFactory(forensicEngine)
+        viewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]
+        
         setupUI()
+        observeViewModel()
     }
 
     private fun setupUI() {
@@ -70,6 +89,15 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
 
         updateUI()
     }
+    
+    private fun observeViewModel() {
+        viewModel.caseResult.observe(this) { result ->
+            // Navigate to EvidenceActivity with the result
+            val intent = Intent(this, EvidenceActivity::class.java)
+            intent.putExtra("caseResult", result)
+            startActivity(intent)
+        }
+    }
 
     private fun showNewCaseDialog() {
         val input = TextInputEditText(this).apply {
@@ -84,6 +112,8 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
                 val name = input.text?.toString()?.trim()
                 if (!name.isNullOrEmpty()) {
                     createNewCase(name)
+                    // Also trigger the forensic engine
+                    viewModel.createCase(name)
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -133,7 +163,7 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
             Intent.FLAG_GRANT_READ_URI_PERMISSION
         )
 
-        val evidenceType = EvidenceProcessor.getEvidenceType(fileName)
+        val evidenceType = com.verumdec.engine.EvidenceProcessor.getEvidenceType(fileName)
         val evidence = Evidence(
             type = evidenceType,
             fileName = fileName,
@@ -214,7 +244,7 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
 
     // ContradictionEngine.ProgressListener implementation
     override fun onProgressUpdate(
-        stage: ContradictionEngine.AnalysisStage,
+        stage: com.verumdec.engine.ContradictionEngine.AnalysisStage,
         progress: Int,
         message: String
     ) {
