@@ -100,6 +100,16 @@ dependencies {
     // ViewPager2 for swipe views
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     
+    // ============================================
+    // GPS Location Services (from take2)
+    // ============================================
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    
+    // ============================================
+    // QR Code Generation (from take2)
+    // ============================================
+    implementation("com.google.zxing:core:3.5.2")
+    
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
