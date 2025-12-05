@@ -84,6 +84,18 @@ dependencies {
     // ML Kit for text recognition (OCR) - works offline
     implementation("com.google.mlkit:text-recognition:16.0.0")
     
+    // Location services (from take2)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    
+    // PDF generation with iText (from take2)
+    implementation("com.itextpdf:itext7-core:7.2.5")
+    
+    // SLF4J logging (required by iTextPDF)
+    implementation("org.slf4j:slf4j-android:1.7.36")
+    
+    // QR code generation (from take2)
+    implementation("com.google.zxing:core:3.5.2")
+    
     // JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")
     
