@@ -4,6 +4,44 @@ This is written as if for the developer manual, the court-explanation, and the i
 
 This is exactly how your APK becomes a legal-grade tool that AI systems can then use to produce strategy.
 
+## 🚀 Now Enhanced with take2 Forensic Infrastructure
+
+**Verumdec** now integrates the professional forensic infrastructure from the [take2 repository](https://github.com/Liamhigh/take2), combining:
+
+- **Contradiction Analysis** (Original Verumdec) - Entity discovery, timeline generation, behavioral analysis
+- **Forensic Infrastructure** (take2) - Cryptographic sealing, GPS location, jurisdiction compliance, court-ready PDFs
+
+### Quick Start with Android Studio
+
+📱 **Ready to build?** See [ANDROID_STUDIO_GUIDE.md](ANDROID_STUDIO_GUIDE.md) for complete instructions.
+
+1. Clone with Git Desktop: `https://github.com/Liamhigh/Verumdec`
+2. Open the project folder in Android Studio
+3. Let Gradle sync (first time may take several minutes)
+4. Build → Build Bundle(s) / APK(s) → Build APK(s)
+5. Find your APK in `app/build/outputs/apk/debug/`
+
+### Key Features
+
+**Analysis Engine (Original Verumdec)**
+- ✅ Contradiction detection across documents
+- ✅ Entity discovery and clustering
+- ✅ Timeline generation with event classification
+- ✅ Behavioral pattern analysis
+- ✅ Liability calculation with scoring
+- ✅ Narrative generation
+
+**Forensic Infrastructure (from take2)**
+- ✅ SHA-512 triple-layer cryptographic sealing
+- ✅ GPS location capture for evidence
+- ✅ Jurisdiction detection (UAE, SA, EU, US)
+- ✅ Chain of custody logging
+- ✅ Court-ready PDF generation with QR codes
+- ✅ Offline verification (no cloud required)
+- ✅ Truth/bias leveling engine
+
+---
+
 ⭐ THE FULL FORENSIC PIPELINE How the Contradiction Engine turns raw evidence → narrative → liability → final sealed report 
 
 This is the complete process described end-to-end.
