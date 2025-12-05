@@ -3,7 +3,7 @@ package com.verumdec.forensic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.verumdec.contradiction.ContradictionEngine
-import com.verumdec.image.TimelineEngine
+import com.verumdec.timeline.TimelineEngine
 import com.verumdec.image.ImageEngine
 import com.verumdec.voice.VoiceEngine
 

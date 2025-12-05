@@ -21,7 +21,7 @@ import com.verumdec.databinding.ActivityMainBinding
 import com.verumdec.forensic.FileSealer
 import com.verumdec.forensic.ForensicEngineFacade
 import com.verumdec.image.ImageEngine
-import com.verumdec.image.TimelineEngine
+import com.verumdec.timeline.TimelineEngine
 import com.verumdec.voice.VoiceEngine
 import kotlinx.coroutines.launch
 import java.util.*
