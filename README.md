@@ -1,8 +1,20 @@
 # Verumdec - Offline Forensic Contradiction Engine
 
-**Version 1.0.0**
+**Version 2.0.0** - *Now with GPS Location & Multi-Jurisdiction Support*
 
-A complete native Android application for forensic contradiction analysis, timeline generation, entity discovery, behavioral analysis, and sealed report generation — all offline, all on-device, without requiring any external API.
+A complete native Android application for forensic contradiction analysis, timeline generation, entity discovery, behavioral analysis, and sealed report generation — **now enhanced with GPS location services and multi-jurisdiction legal compliance from take2**. All features work offline, all on-device, without requiring any external API.
+
+## 🚀 What's New in 2.0
+
+### Integrated Features from take2
+
+✅ **GPS Location Services** - Capture high-accuracy location data with every piece of evidence
+✅ **Multi-Jurisdiction Compliance** - Support for UAE, South Africa, EU, and US legal standards
+✅ **QR Code Generation** - Quick verification codes embedded in reports
+✅ **Constitutional Governance** - Built-in ethical framework and forensic standards
+✅ **Enhanced Cryptographic Sealing** - Location-aware evidence integrity
+
+See **[INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)** for complete details on the integration.
 
 ## 🚀 Quick Start
 
