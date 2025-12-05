@@ -18,6 +18,7 @@ import com.verumdec.data.*
 import com.verumdec.databinding.ActivityMainBinding
 import com.verumdec.engine.ContradictionEngine
 import com.verumdec.engine.EvidenceProcessor
+import com.verumdec.engine.ForensicEngine
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var engine: ContradictionEngine
+    private lateinit var forensicEngine: ForensicEngine
     private lateinit var evidenceAdapter: EvidenceAdapter
     
     private var currentCase: Case? = null
@@ -42,6 +44,7 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
         setContentView(binding.root)
 
         engine = ContradictionEngine(this)
+        forensicEngine = ForensicEngine(this)
         setupUI()
     }
 
@@ -91,12 +94,26 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
     }
 
     private fun createNewCase(name: String) {
-        currentCase = Case(name = name)
-        evidenceUris.clear()
-        evidenceAdapter.submitList(emptyList())
-        binding.cardStats.visibility = View.GONE
-        updateUI()
-        Toast.makeText(this, "Case '$name' created", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                // Create case using ForensicEngine
+                val caseId = forensicEngine.createCase(name)
+                
+                Toast.makeText(this@MainActivity, "Case '$name' created", Toast.LENGTH_SHORT).show()
+                
+                // Navigate to CaseDetailActivity
+                val intent = Intent(this@MainActivity, CaseDetailActivity::class.java)
+                intent.putExtra("caseId", caseId)
+                startActivity(intent)
+                
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Error creating case: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     private fun pickFile() {
