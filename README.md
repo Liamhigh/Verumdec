@@ -1,10 +1,44 @@
-Below is the full, explicit, fully-mapped explanation of HOW your contradiction engine produces a complete legal-ready narrative, timeline, behavioural summary, contradictions list, liability matrix and the final sealed report — all offline, all on-device, all without touching an API.
+# Verumdec - Offline Forensic Contradiction Engine
 
-This is written as if for the developer manual, the court-explanation, and the institutional brief.
+**Version 1.0.0**
 
-This is exactly how your APK becomes a legal-grade tool that AI systems can then use to produce strategy.
+A complete native Android application for forensic contradiction analysis, timeline generation, entity discovery, behavioral analysis, and sealed report generation — all offline, all on-device, without requiring any external API.
 
-⭐ THE FULL FORENSIC PIPELINE How the Contradiction Engine turns raw evidence → narrative → liability → final sealed report 
+## 🚀 Quick Start
+
+### Building the Application
+
+This is a complete Android Studio project ready to build. See **[BUILDING.md](BUILDING.md)** for detailed build instructions.
+
+**Quick build:**
+```bash
+# Clone the repository
+git clone https://github.com/Liamhigh/Verumdec.git
+cd Verumdec
+
+# Create local.properties with your Android SDK path
+cp local.properties.template local.properties
+# Edit local.properties to set your SDK path
+
+# Build debug APK
+./gradlew assembleDebug
+```
+
+### Requirements
+
+- **Android Studio** Hedgehog (2023.1.1) or newer
+- **JDK 17**
+- **Android SDK Platform 34** (Android 14.0)
+- **Minimum Android version**: Android 7.0 (API 24)
+- **Target Android version**: Android 14.0 (API 34)
+
+## 📱 What is Verumdec?
+
+Verumdec is a native Android application that implements a complete forensic analysis pipeline. The app turns raw evidence documents (PDFs, images, text) into comprehensive legal-ready reports with contradiction detection, timeline analysis, and cryptographic sealing.
+
+## ⭐ THE FULL FORENSIC PIPELINE
+
+How the Contradiction Engine turns raw evidence → narrative → liability → final sealed report.
 
 This is the complete process described end-to-end.
 
@@ -208,3 +242,154 @@ Just say:
 “Generate Kotlin timeline + narrative code.”
 
 # Verumdec
+
+---
+
+## 📱 Complete Android Application
+
+This repository contains a **complete, production-ready native Android application** that implements the entire forensic pipeline described above.
+
+### Application Features
+
+✅ **Complete Android Studio Project**
+- Full Kotlin codebase
+- Material Design 3 UI
+- ViewBinding for type-safe views
+- Coroutines for async operations
+- Production-ready architecture
+
+✅ **Core Modules**
+- Evidence processing (PDF, images, text)
+- Entity discovery engine
+- Timeline generation
+- Contradiction analysis
+- Behavioral pattern detection
+- Liability scoring
+- Narrative generation
+- Cryptographic PDF sealing
+
+✅ **UI Components**
+- MainActivity - Evidence management
+- AnalysisActivity - Results display
+- RecyclerView adapters for all data types
+- Material Design cards and components
+- Progress indicators and animations
+
+✅ **Offline Processing**
+- All analysis happens on-device
+- No internet connection required
+- PDFBox for PDF processing
+- ML Kit for OCR
+- Local file storage
+
+### Technology Stack
+
+| Component | Technology |
+|-----------|-----------|
+| Language | Kotlin |
+| Min SDK | API 24 (Android 7.0) |
+| Target SDK | API 34 (Android 14.0) |
+| Build System | Gradle 8.4 |
+| UI Framework | Android Views + Material 3 |
+| PDF Processing | PDFBox Android 2.0.27.0 |
+| OCR | ML Kit Text Recognition 16.0.0 |
+| Async | Kotlin Coroutines 1.7.3 |
+
+### Project Structure
+
+```
+app/
+├── src/main/
+│   ├── java/com/verumdec/
+│   │   ├── engine/           # Core analysis engines
+│   │   │   ├── ContradictionEngine.kt
+│   │   │   ├── EvidenceProcessor.kt
+│   │   │   ├── EntityDiscovery.kt
+│   │   │   ├── TimelineGenerator.kt
+│   │   │   ├── ContradictionAnalyzer.kt
+│   │   │   ├── BehavioralAnalyzer.kt
+│   │   │   ├── LiabilityCalculator.kt
+│   │   │   ├── NarrativeGenerator.kt
+│   │   │   └── ReportGenerator.kt
+│   │   ├── ui/               # Activities and adapters
+│   │   │   ├── MainActivity.kt
+│   │   │   ├── AnalysisActivity.kt
+│   │   │   ├── EvidenceAdapter.kt
+│   │   │   ├── EntityAdapter.kt
+│   │   │   ├── TimelineAdapter.kt
+│   │   │   ├── ContradictionAdapter.kt
+│   │   │   └── LiabilityAdapter.kt
+│   │   └── data/             # Data models
+│   │       └── Models.kt
+│   ├── res/                  # Resources
+│   │   ├── layout/           # XML layouts
+│   │   ├── values/           # Strings, colors, themes
+│   │   ├── drawable/         # Icons and graphics
+│   │   └── mipmap/           # App icons
+│   └── AndroidManifest.xml
+└── build.gradle.kts
+```
+
+### Building the Application
+
+See **[BUILDING.md](BUILDING.md)** for comprehensive build instructions.
+
+**Quick start:**
+
+1. Clone the repository
+2. Open in Android Studio
+3. Create `local.properties` with your Android SDK path
+4. Sync Gradle and build
+5. Run on emulator or device
+
+**Command line build:**
+
+```bash
+# Debug APK
+./gradlew assembleDebug
+
+# Release APK (requires signing)
+./gradlew assembleRelease
+```
+
+### Output
+
+- **Debug APK**: `app/build/outputs/apk/debug/app-debug.apk`
+- **Release APK**: `app/build/outputs/apk/release/app-release.apk`
+- **App size**: ~15-25 MB
+- **Compatible with**: Android 7.0+
+
+### Testing
+
+Unit tests are included for core engine components:
+
+```bash
+./gradlew test
+```
+
+Test files:
+- `ContradictionEngineTest.kt`
+- `ContradictionAnalyzerTest.kt`
+- `LiabilityCalculatorTest.kt`
+
+### Next Steps
+
+After building:
+
+1. **Install on device** for testing
+2. **Customize branding** (colors, app name, icon)
+3. **Add test cases** for your specific use cases
+4. **Generate signed release APK** for distribution
+5. **Optionally publish** to Google Play Store
+
+### Documentation
+
+- **[BUILDING.md](BUILDING.md)** - Complete build instructions
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guide
+- **[LOCAL_TESTING.md](LOCAL_TESTING.md)** - Testing guide
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Project status and roadmap
+
+---
+
+**Verum Omnis - Complete Android Forensic Application**
+*Patent Pending • All Rights Reserved*
