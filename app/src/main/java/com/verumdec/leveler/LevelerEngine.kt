@@ -548,7 +548,7 @@ data class LevelerAnalysis(
      * Generates a human-readable summary
      */
     fun generateSummary(): String = buildString {
-        appendLine("=" .repeat(60))
+        appendLine("=".repeat(60))
         appendLine("LEVELER ENGINE ANALYSIS REPORT")
         appendLine("=".repeat(60))
         appendLine()

@@ -11,6 +11,7 @@ import com.verumdec.crypto.ForensicTripleHashSeal
 import com.verumdec.crypto.TamperDetectionResult
 import com.verumdec.custody.ChainOfCustodyLogger
 import com.verumdec.custody.CustodyAction
+import com.verumdec.custody.IntegrityStatus
 import com.verumdec.data.EvidenceType
 import com.verumdec.data.ForensicEvidence
 import com.verumdec.jurisdiction.Jurisdiction
@@ -195,7 +196,7 @@ class ForensicEngine(private val context: Context) {
         "device_model" to Build.MODEL,
         "android_version" to Build.VERSION.RELEASE,
         "sdk_version" to Build.VERSION.SDK_INT.toString(),
-        "engine_version" to VerumOmnisApplication.VERSION,
+        "engine_version" to CryptographicSealingEngine.VERSION,
         "hash_standard" to HASH_STANDARD
     )
 
@@ -395,7 +396,7 @@ class ForensicEngine(private val context: Context) {
     /**
      * Verifies the entire chain of custody for integrity
      */
-    fun verifyChainOfCustody(): org.verumomnis.forensic.custody.IntegrityStatus {
+    fun verifyChainOfCustody(): com.verumdec.custody.IntegrityStatus {
         return custodyLogger.verifyChainIntegrity()
     }
 

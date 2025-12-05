@@ -1,8 +1,8 @@
 package com.verumdec.report
 
-import com.verumdec.core.EvidenceType
-import com.verumdec.core.ForensicCase
-import com.verumdec.core.ForensicEvidence
+import com.verumdec.data.EvidenceType
+import com.verumdec.engine.ForensicCase
+import com.verumdec.data.ForensicEvidence
 import com.verumdec.jurisdiction.Jurisdiction
 import com.verumdec.jurisdiction.JurisdictionComplianceEngine
 import java.time.Duration
