@@ -13,19 +13,23 @@ class EvidenceActivity : AppCompatActivity() {
         setContentView(R.layout.activity_evidence)
         
         // Get the case result from intent
-        @Suppress("DEPRECATION")
-        val caseResult = intent.getSerializableExtra("caseResult") as? CaseResult
+        val caseResult = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("caseResult", CaseResult::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getSerializableExtra("caseResult") as? CaseResult
+        }
         
         // Display the results
         findViewById<TextView>(R.id.textContradictions)?.text = 
-            "Contradictions: ${caseResult?.contradictions ?: "None"}"
+            "Contradictions: ${caseResult?.contradictions ?: "Loading..."}"
         findViewById<TextView>(R.id.textTimeline)?.text = 
-            "Timeline: ${caseResult?.timeline ?: "None"}"
+            "Timeline: ${caseResult?.timeline ?: "Loading..."}"
         findViewById<TextView>(R.id.textImage)?.text = 
-            "Image: ${caseResult?.image ?: "None"}"
+            "Image: ${caseResult?.image ?: "Loading..."}"
         findViewById<TextView>(R.id.textVoice)?.text = 
-            "Voice: ${caseResult?.voice ?: "None"}"
+            "Voice: ${caseResult?.voice ?: "Loading..."}"
         findViewById<TextView>(R.id.textSeal)?.text = 
-            "Seal: ${caseResult?.seal ?: "None"}"
+            "Seal: ${caseResult?.seal ?: "Loading..."}"
     }
 }

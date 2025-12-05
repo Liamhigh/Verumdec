@@ -32,9 +32,9 @@ class ForensicEngineFacade(
 }
 
 data class CaseResult(
-    val contradictions: Any?,
-    val timeline: Any?,
-    val image: Any?,
-    val voice: Any?,
+    val contradictions: String,
+    val timeline: String,
+    val image: String,
+    val voice: String,
     val seal: String
 ) : java.io.Serializable
