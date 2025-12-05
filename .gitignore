@@ -70,3 +70,6 @@ vcs.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# Backup files
+*.backup
