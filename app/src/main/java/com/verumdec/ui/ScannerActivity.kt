@@ -78,7 +78,7 @@ class ScannerActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener {
-            onBackPressed()
+            finish()
         }
 
         binding.btnTakePhoto.setOnClickListener {
