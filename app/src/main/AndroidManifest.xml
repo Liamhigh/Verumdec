@@ -39,6 +39,12 @@
             android:theme="@style/Theme.Verumdec" />
             
         <activity
+            android:name=".ui.EvidenceActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/Theme.Verumdec" />
+            
+        <activity
             android:name=".ui.ReportActivity"
             android:exported="false"
             android:parentActivityName=".ui.AnalysisActivity"

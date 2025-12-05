@@ -58,6 +58,16 @@ android {
 
 dependencies {
     // ============================================
+    // Forensic Engine Modules
+    // ============================================
+    implementation(project(":forensic_engine"))
+    implementation(project(":contradiction"))
+    implementation(project(":timeline"))
+    implementation(project(":image"))
+    implementation(project(":voice"))
+    implementation(project(":ui"))
+    
+    // ============================================
     // Core Android
     // ============================================
     implementation("androidx.core:core-ktx:1.12.0")
