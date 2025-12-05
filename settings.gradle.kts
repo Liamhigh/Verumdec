@@ -1,15 +1,26 @@
 pluginManagement {
     repositories {
-        google()
+        maven {
+            url = uri("https://maven.google.com")
+        }
         mavenCentral()
         gradlePluginPortal()
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.namespace == "com.android" || requested.id.name.startsWith("com.android.")) {
+                useModule("com.android.tools.build:gradle:${requested.version}")
+            }
+        }
     }
 }
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
+        maven {
+            url = uri("https://maven.google.com")
+        }
         mavenCentral()
     }
 }
