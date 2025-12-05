@@ -9,6 +9,9 @@
         android:maxSdkVersion="28"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -31,6 +34,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".ui.ScannerActivity"
+            android:exported="true"
+            android:parentActivityName=".ui.CaseDetailActivity"
+            android:theme="@style/Theme.Verumdec" />
+        
+        <activity
+            android:name=".ui.CaseDetailActivity"
+            android:exported="true"
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/Theme.Verumdec" />
+        
+        <activity
+            android:name=".ui.ReportViewerActivity"
+            android:exported="true"
+            android:parentActivityName=".ui.CaseDetailActivity"
+            android:theme="@style/Theme.Verumdec" />
         
         <activity
             android:name=".ui.AnalysisActivity"

@@ -46,6 +46,9 @@
     <!-- Accent for highlights -->
     <color name="accent">#FFD740</color>
     
+    <!-- White color -->
+    <color name="white">#FFFFFF</color>
+    
     <!-- Contradiction highlight -->
     <color name="contradiction_highlight">#FFCDD2</color>
     
