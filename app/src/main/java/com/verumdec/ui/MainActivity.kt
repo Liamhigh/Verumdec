@@ -91,12 +91,14 @@ class MainActivity : AppCompatActivity(), ContradictionEngine.ProgressListener {
     }
 
     private fun createNewCase(name: String) {
-        currentCase = Case(name = name)
-        evidenceUris.clear()
-        evidenceAdapter.submitList(emptyList())
-        binding.cardStats.visibility = View.GONE
-        updateUI()
-        Toast.makeText(this, "Case '$name' created", Toast.LENGTH_SHORT).show()
+        val caseId = UUID.randomUUID().toString()
+        
+        // Navigate to CaseDetailActivity with the new case
+        val intent = Intent(this, CaseDetailActivity::class.java).apply {
+            putExtra("caseId", caseId)
+            putExtra("caseName", name)
+        }
+        startActivity(intent)
     }
 
     private fun pickFile() {

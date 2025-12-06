@@ -1,3 +1,80 @@
+# Verumdec - Offline Forensic Analysis for Legal Cases
+
+## 🎯 NEW: Four-Layer Verum Omnis Forensic Engine
+
+This repository now includes the **Verum Omnis Forensic Engine** - a deterministic, rule-based forensic analysis pipeline implemented as four sequential layers.
+
+### 🔥 Latest: Four-Layer Architecture (Recommended)
+
+The engine has been refactored into **four deterministic layers** for clearer logic and explicit rule-based processing:
+
+1. **NarrativeEngine** - Normalizes evidence into structured sentences
+2. **ContradictionEngine** - Detects conflicts using 7 explicit rules
+3. **ClassificationEngine** - Maps contradictions to 5 legal categories
+4. **ReportEngine** - Builds structured 6-section report
+
+**📖 [Four-Layer Engine Documentation](FOUR_LAYER_ENGINE.md)** - Complete specification and usage
+
+### Quick Links
+- 📖 **[Quick Start Guide](QUICK_START.md)** - How to use the app
+- 🔧 **[Four-Layer Engine Docs](FOUR_LAYER_ENGINE.md)** - New architecture details ⭐
+- 📋 **[12-Step Implementation](VERUM_OMNIS_ENGINE.md)** - Original architecture (legacy)
+- 📊 **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - What was built
+
+### Key Features
+✅ **Deterministic Analysis** - Same input always produces same output  
+✅ **Rule-Based Processing** - 7 contradiction rules + 5 classification rules  
+✅ **Offline Processing** - No internet required, all on-device  
+✅ **Structured Reports** - 6-section forensic reports saved to `/cases/{caseId}/final_report.txt`  
+✅ **Legal Categories** - 5 subjects: Shareholder Oppression, Fiduciary Breach, Cybercrime, Fraudulent Evidence, Emotional Exploitation  
+✅ **Explicit Rules** - Every contradiction cites specific detection rule  
+✅ **Court-Ready** - Designed for legal admissibility with transparent logic  
+
+### How It Works
+1. **Create Case** - Name your case, system creates `/cases/{caseId}/`
+2. **Add Evidence** - Upload PDFs, images (OCR), documents, or text notes
+3. **Generate Report** - Engine runs four-layer analysis pipeline
+4. **View Results** - Structured forensic report with contradictions and legal classifications
+
+### The Four-Layer Pipeline
+Every case flows through these layers in exact order:
+
+```
+Evidence Text
+     ↓
+Layer 1: NarrativeEngine → Structured sentences with timestamps
+     ↓
+Layer 2: ContradictionEngine → Apply 7 detection rules
+     ↓
+Layer 3: ClassificationEngine → Map to 5 legal categories
+     ↓
+Layer 4: ReportEngine → Build 6-section report
+     ↓
+Output: /cases/{caseId}/final_report.txt
+```
+
+**The pipeline NEVER changes based on evidence - ensuring unbiased, reproducible analysis.**
+
+### Contradiction Detection Rules (7 Rules)
+1. Direct Negation - "never" vs affirmation
+2. Denial vs Evidence - specific patterns
+3. Timeline Conflicts - date mismatches
+4. Quantity Conflicts - different numbers
+5. Admission vs Denial - "I agreed" vs "I never agreed"
+6. Action vs Outcome - claim vs evidence
+7. Data Access Conflicts - denial vs access evidence
+
+### Legal Classifications (5 Categories)
+- SHAREHOLDER_OPPRESSION - Corporate/business conflicts
+- FRAUDULENT_EVIDENCE - Evidence tampering
+- CYBERCRIME - Device/account access
+- BREACH_OF_FIDUCIARY_DUTY - Trust/duty conflicts
+- EMOTIONAL_EXPLOITATION - Manipulation/gaslighting
+
+---
+
+## About The Original Verumdec Engine
+
 Below is the full, explicit, fully-mapped explanation of HOW your contradiction engine produces a complete legal-ready narrative, timeline, behavioural summary, contradictions list, liability matrix and the final sealed report — all offline, all on-device, all without touching an API.
 
 This is written as if for the developer manual, the court-explanation, and the institutional brief.
