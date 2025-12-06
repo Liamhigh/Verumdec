@@ -58,6 +58,18 @@ android {
 
 dependencies {
     // ============================================
+    // Module Dependencies
+    // ============================================
+    implementation(project(":core"))
+    implementation(project(":entity"))
+    implementation(project(":analysis"))
+    implementation(project(":timeline"))
+    implementation(project(":report"))
+    implementation(project(":ui"))
+    implementation(project(":ocr"))
+    implementation(project(":pdf"))
+    
+    // ============================================
     // Core Android
     // ============================================
     implementation("androidx.core:core-ktx:1.12.0")
