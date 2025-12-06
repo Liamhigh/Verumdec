@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_save_case"
+        android:title="Save Case"
+        android:icon="@drawable/ic_check"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_export_case"
+        android:title="Export Case"
+        android:icon="@drawable/ic_pdf"
+        app:showAsAction="never" />
+
+</menu>

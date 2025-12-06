@@ -9,6 +9,13 @@
         android:maxSdkVersion="28"
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    
+    <!-- Camera features -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -31,6 +38,38 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".ui.CaseDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/Theme.Verumdec" />
+        
+        <activity
+            android:name=".ui.ScannerActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.CaseDetailActivity"
+            android:theme="@style/Theme.Verumdec.NoActionBar"
+            android:screenOrientation="portrait" />
+        
+        <activity
+            android:name=".ui.AudioRecorderActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.CaseDetailActivity"
+            android:theme="@style/Theme.Verumdec" />
+        
+        <activity
+            android:name=".ui.VideoRecorderActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.CaseDetailActivity"
+            android:theme="@style/Theme.Verumdec.NoActionBar"
+            android:screenOrientation="portrait" />
+        
+        <activity
+            android:name=".ui.ReportViewerActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.CaseDetailActivity"
+            android:theme="@style/Theme.Verumdec" />
         
         <activity
             android:name=".ui.AnalysisActivity"

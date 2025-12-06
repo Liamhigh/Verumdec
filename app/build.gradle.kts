@@ -58,6 +58,18 @@ android {
 
 dependencies {
     // ============================================
+    // Module Dependencies
+    // ============================================
+    implementation(project(":core"))
+    implementation(project(":entity"))
+    implementation(project(":analysis"))
+    implementation(project(":timeline"))
+    implementation(project(":report"))
+    implementation(project(":ui"))
+    implementation(project(":ocr"))
+    implementation(project(":pdf"))
+    
+    // ============================================
     // Core Android
     // ============================================
     implementation("androidx.core:core-ktx:1.12.0")
@@ -99,6 +111,14 @@ dependencies {
     
     // ViewPager2 for swipe views
     implementation("androidx.viewpager2:viewpager2:1.0.0")
+    
+    // CameraX for image and video capture
+    implementation("androidx.camera:camera-core:1.3.0")
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-video:1.3.0")
+    implementation("androidx.camera:camera-view:1.3.0")
+    implementation("androidx.camera:camera-extensions:1.3.0")
     
     // Testing
     testImplementation("junit:junit:4.13.2")
