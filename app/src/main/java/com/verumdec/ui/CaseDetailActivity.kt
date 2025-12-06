@@ -15,7 +15,7 @@ import com.verumdec.engine.EvidenceProcessor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.verumomnis.engine.ForensicEngine
+import org.verumomnis.engine.EngineManager
 import java.io.File
 
 /**
@@ -31,7 +31,7 @@ class CaseDetailActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityCaseDetailBinding
     private lateinit var evidenceProcessor: EvidenceProcessor
-    private lateinit var forensicEngine: ForensicEngine
+    private lateinit var engineManager: EngineManager
     
     private var caseId: String = ""
     private var caseName: String = ""
@@ -60,7 +60,7 @@ class CaseDetailActivity : AppCompatActivity() {
         caseName = intent.getStringExtra("caseName") ?: "Unknown Case"
         
         evidenceProcessor = EvidenceProcessor(this)
-        forensicEngine = ForensicEngine()
+        engineManager = EngineManager()
         
         setupUI()
     }
@@ -196,18 +196,18 @@ class CaseDetailActivity : AppCompatActivity() {
         
         val progressDialog = MaterialAlertDialogBuilder(this)
             .setTitle("Generating Report")
-            .setMessage("Running 12-step forensic pipeline...")
+            .setMessage("Running four-layer forensic pipeline...")
             .setCancelable(false)
             .create()
         progressDialog.show()
         
         lifecycleScope.launch {
             try {
-                // Run the forensic engine pipeline
+                // Run the four-layer forensic engine pipeline
                 val casesDir = File(getExternalFilesDir(null), "cases")
-                val (report, reportFile) = forensicEngine.analyzeAndSave(
-                    caseId = caseId,
+                val reportFile = engineManager.runMultipleEvidenceAndSave(
                     evidenceTexts = evidenceTexts,
+                    caseId = caseId,
                     casesDir = casesDir
                 )
                 
