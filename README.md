@@ -1,3 +1,40 @@
+# Verumdec - Offline Forensic Analysis for Legal Cases
+
+## 🎯 NEW: Verum Omnis Forensic Engine
+
+This repository now includes the **Verum Omnis Forensic Engine** - a deterministic, 12-step forensic analysis pipeline that processes legal evidence consistently and reproducibly.
+
+### Quick Links
+- 📖 **[Quick Start Guide](QUICK_START.md)** - How to use the app
+- 🔧 **[Technical Documentation](VERUM_OMNIS_ENGINE.md)** - Architecture and implementation details
+- 📋 **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - What was built
+
+### Key Features
+✅ **Deterministic Analysis** - Same input always produces same output  
+✅ **12-Step Pipeline** - Fixed, immutable forensic process  
+✅ **Offline Processing** - No internet required, all on-device  
+✅ **Structured Reports** - 10-section forensic reports saved to `/cases/{caseId}/report.txt`  
+✅ **Legal Categories** - Classifies evidence into 5 legal subjects  
+✅ **Behavioral Analysis** - Detects 7 manipulation patterns  
+✅ **Contradiction Detection** - Identifies conflicting statements  
+✅ **Dishonesty Scoring** - Calculates evidence reliability percentage  
+
+### How It Works
+1. **Create Case** - Name your case, system creates `/cases/{caseId}/`
+2. **Add Evidence** - Upload PDFs, images (OCR), documents, or text notes
+3. **Generate Report** - Engine runs 12-step analysis pipeline
+4. **View Results** - Structured forensic report with contradictions, liabilities, and recommended actions
+
+### The 12-Step Pipeline
+Every case goes through these exact steps:
+1. Evidence Ingestion → 2. Narrative Build → 3. Subject Classification → 4. Contradiction Detection → 5. Omission Detection → 6. Behavioral Analysis → 7. Keyword Scan → 8. Severity Scoring → 9. Dishonesty Calculation → 10. Liability Extraction → 11. Action Recommendation → 12. Report Generation
+
+**The pipeline NEVER changes based on evidence - ensuring unbiased, reproducible analysis.**
+
+---
+
+## About The Original Verumdec Engine
+
 Below is the full, explicit, fully-mapped explanation of HOW your contradiction engine produces a complete legal-ready narrative, timeline, behavioural summary, contradictions list, liability matrix and the final sealed report — all offline, all on-device, all without touching an API.
 
 This is written as if for the developer manual, the court-explanation, and the institutional brief.
