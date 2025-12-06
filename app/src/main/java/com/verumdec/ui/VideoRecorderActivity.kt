@@ -176,8 +176,9 @@ class VideoRecorderActivity : AppCompatActivity() {
                         binding.btnRecord.text = "Stop Recording"
                         binding.statusText.text = "Recording..."
                         binding.recordingIndicator.visibility = android.view.View.VISIBLE
+                        // Use ContextCompat for color compatibility
                         binding.btnRecord.setBackgroundColor(
-                            getColor(android.R.color.holo_red_dark)
+                            ContextCompat.getColor(this@VideoRecorderActivity, android.R.color.holo_red_dark)
                         )
                     }
                     is VideoRecordEvent.Finalize -> {

@@ -184,7 +184,7 @@ class CaseDetailActivity : AppCompatActivity(), ContradictionEngine.ProgressList
             fileName = fileName,
             filePath = file.absolutePath,
             extractedText = text,
-            processed = true
+            processed = false // Will be processed during forensic analysis
         )
 
         case.evidence.add(evidence)
@@ -319,13 +319,13 @@ class CaseDetailActivity : AppCompatActivity(), ContradictionEngine.ProgressList
                 REQUEST_CODE_AUDIO -> {
                     val filePath = data?.getStringExtra("file_path")
                     if (filePath != null) {
-                        addCapturedEvidence(filePath, EvidenceType.TEXT) // Audio as text after processing
+                        addCapturedEvidence(filePath, EvidenceType.TEXT) // Audio will be transcribed to text during processing
                     }
                 }
                 REQUEST_CODE_VIDEO -> {
                     val filePath = data?.getStringExtra("file_path")
                     if (filePath != null) {
-                        addCapturedEvidence(filePath, EvidenceType.TEXT) // Video as text after processing
+                        addCapturedEvidence(filePath, EvidenceType.TEXT) // Video will be transcribed to text during processing
                     }
                 }
             }

@@ -179,13 +179,19 @@ class AudioRecorderActivity : AppCompatActivity() {
     private fun updateUI() {
         if (isRecording) {
             binding.btnRecord.text = "Stop Recording"
-            binding.btnRecord.setBackgroundColor(getColor(android.R.color.holo_red_dark))
+            // Use theme attribute instead of hardcoded color
+            binding.btnRecord.setBackgroundColor(
+                ContextCompat.getColor(this, android.R.color.holo_red_dark)
+            )
             binding.btnDone.isEnabled = false
             binding.statusText.text = "Recording..."
             binding.recordingIndicator.visibility = android.view.View.VISIBLE
         } else {
             binding.btnRecord.text = "Start Recording"
-            binding.btnRecord.setBackgroundColor(getColor(android.R.color.holo_red_light))
+            // Use theme attribute instead of hardcoded color
+            binding.btnRecord.setBackgroundColor(
+                ContextCompat.getColor(this, android.R.color.holo_red_light)
+            )
             binding.btnDone.isEnabled = outputFile != null
             binding.statusText.text = if (outputFile != null) "Recording ready" else "Ready to record"
             binding.recordingIndicator.visibility = android.view.View.GONE

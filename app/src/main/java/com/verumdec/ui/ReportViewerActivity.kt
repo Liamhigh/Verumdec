@@ -42,7 +42,14 @@ class ReportViewerActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_CASE_ID = "case_id"
-        var currentCase: Case? = null // Temporary storage (use proper state management in production)
+        
+        // TODO: Replace with proper state management (ViewModel or dependency injection)
+        // This static variable is a temporary solution for passing case data
+        // Not suitable for production use due to:
+        // - Potential memory leaks
+        // - Not thread-safe
+        // - Can cause issues with process death/recreation
+        var currentCase: Case? = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
